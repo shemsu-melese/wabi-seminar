@@ -6,22 +6,25 @@ const router = express.Router();
 
 router.use(authenticate);
 
-// POST /api/attendance/:meetingId/join
+// Join meeting
 router.post('/:meetingId/join', attendanceController.recordJoin);
 
-// POST /api/attendance/:meetingId/leave
+// Leave meeting
 router.post('/:meetingId/leave', attendanceController.recordLeave);
 
-// GET /api/attendance/:meetingId
+// Get meeting attendance
 router.get('/:meetingId', attendanceController.getMeetingAttendance);
 
-// GET /api/attendance/:meetingId/report
+// Get attendance report
 router.get('/:meetingId/report', attendanceController.getAttendanceReport);
 
-// GET /api/attendance/user
-router.get('/user', attendanceController.getUserAttendance);
+// Export report (CSV)
+router.get('/:meetingId/export', attendanceController.exportReport);
 
-// PUT /api/attendance/:meetingId/:userId/status
+// Get user attendance history
+router.get('/user/history', attendanceController.getUserAttendance);
+
+// Update attendance status (host only)
 router.put('/:meetingId/:userId/status', attendanceController.updateStatus);
 
 export default router;

@@ -104,7 +104,10 @@ class AttendanceRepository {
                     SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
                     SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late,
                     SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent,
-                    AVG(duration_seconds) as avg_duration
+                    SUM(CASE WHEN status = 'excused' THEN 1 ELSE 0 END) as excused,
+                    AVG(duration_seconds) as avg_duration,
+                    MAX(duration_seconds) as max_duration,
+                    MIN(duration_seconds) as min_duration
                 FROM attendance
                 WHERE meeting_id = ?`,
                 [meetingId]
@@ -137,19 +140,24 @@ class AttendanceRepository {
     /**
      * Get user attendance history
      */
-    async getUserAttendance(userId) {
+    async getUserAttendance(userId, limit = 50, offset = 0) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
                     a.*,
                     m.title as meeting_title,
                     m.code as meeting_code,
-                    m.status as meeting_status
+                    m.status as meeting_status,
+                    m.start_time as meeting_start_time,
+                    u2.first_name as host_first_name,
+                    u2.last_name as host_last_name
                 FROM attendance a
                 JOIN meetings m ON a.meeting_id = m.id
+                JOIN users u2 ON m.created_by = u2.id
                 WHERE a.user_id = ?
-                ORDER BY a.join_time DESC`,
-                [userId]
+                ORDER BY a.join_time DESC
+                LIMIT ? OFFSET ?`,
+                [userId, limit, offset]
             );
             return rows;
         } catch (error) {
@@ -165,7 +173,7 @@ class AttendanceRepository {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    u.id,
+                    u.id as user_id,
                     u.first_name,
                     u.last_name,
                     u.email,
@@ -175,22 +183,169 @@ class AttendanceRepository {
                     a.status,
                     CASE 
                         WHEN a.join_time IS NULL THEN 'Not Joined'
-                        WHEN a.join_time > DATE_ADD(m.start_time, INTERVAL 5 MINUTE) THEN 'Late'
-                        ELSE 'On Time'
+                        WHEN a.join_time <= DATE_ADD(m.start_time, INTERVAL 5 MINUTE) THEN 'On Time'
+                        ELSE 'Late'
                     END as punctuality,
                     m.title as meeting_title,
                     m.start_time as meeting_start_time,
-                    m.end_time as meeting_end_time
+                    m.end_time as meeting_end_time,
+                    m.duration_minutes as planned_duration
                 FROM meetings m
-                LEFT JOIN attendance a ON m.id = a.meeting_id
-                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
+                LEFT JOIN users u ON mp.user_id = u.id
+                LEFT JOIN attendance a ON m.id = a.meeting_id AND u.id = a.user_id
                 WHERE m.id = ?
+                AND mp.status != 'removed'
                 ORDER BY a.join_time ASC`,
                 [meetingId]
             );
             return rows;
         } catch (error) {
             console.error('Error getting attendance report:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get meeting analytics data
+     */
+    async getMeetingAnalytics(meetingId) {
+        try {
+            const [rows] = await pool.execute(
+                `SELECT 
+                    m.id,
+                    m.title,
+                    m.code,
+                    m.status,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    COUNT(DISTINCT mp.user_id) as total_participants,
+                    COUNT(DISTINCT a.user_id) as attended_participants,
+                    AVG(a.duration_seconds) as avg_duration_seconds,
+                    SUM(a.duration_seconds) as total_duration_seconds,
+                    (SELECT COUNT(*) FROM chat_messages WHERE meeting_id = m.id) as total_messages,
+                    (SELECT COUNT(*) FROM reactions WHERE meeting_id = m.id) as total_reactions,
+                    (SELECT COUNT(*) FROM hand_raises WHERE meeting_id = m.id) as total_hand_raises,
+                    (SELECT COUNT(*) FROM meeting_files WHERE meeting_id = m.id) as total_files
+                FROM meetings m
+                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
+                LEFT JOIN attendance a ON m.id = a.meeting_id
+                WHERE m.id = ?
+                GROUP BY m.id`,
+                [meetingId]
+            );
+            return rows[0] || null;
+        } catch (error) {
+            console.error('Error getting meeting analytics:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get platform-wide analytics
+     */
+    async getPlatformAnalytics(startDate = null, endDate = null) {
+        try {
+            let dateFilter = '';
+            const params = [];
+
+            if (startDate && endDate) {
+                dateFilter = 'WHERE created_at BETWEEN ? AND ?';
+                params.push(startDate, endDate);
+            }
+
+            const [rows] = await pool.execute(
+                `SELECT 
+                    COUNT(DISTINCT m.id) as total_meetings,
+                    COUNT(DISTINCT u.id) as total_users,
+                    COUNT(DISTINCT mp.user_id) as total_participants,
+                    SUM(m.duration_minutes) as total_minutes,
+                    AVG(m.duration_minutes) as avg_meeting_duration,
+                    SUM(CASE WHEN m.status = 'ongoing' THEN 1 ELSE 0 END) as active_meetings,
+                    SUM(CASE WHEN m.status = 'scheduled' THEN 1 ELSE 0 END) as scheduled_meetings,
+                    SUM(CASE WHEN m.status = 'ended' THEN 1 ELSE 0 END) as completed_meetings,
+                    (SELECT COUNT(*) FROM chat_messages) as total_messages,
+                    (SELECT COUNT(*) FROM reactions) as total_reactions
+                FROM meetings m
+                LEFT JOIN users u ON m.created_by = u.id
+                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
+                ${dateFilter}`,
+                params
+            );
+            return rows[0];
+        } catch (error) {
+            console.error('Error getting platform analytics:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get user-specific analytics
+     */
+    async getUserAnalytics(userId) {
+        try {
+            const [rows] = await pool.execute(
+                `SELECT 
+                    COUNT(DISTINCT m.id) as total_meetings,
+                    COUNT(DISTINCT CASE WHEN m.created_by = ? THEN m.id END) as hosted_meetings,
+                    COUNT(DISTINCT a.meeting_id) as attended_meetings,
+                    SUM(a.duration_seconds) as total_minutes,
+                    AVG(a.duration_seconds) as avg_meeting_duration,
+                    COUNT(DISTINCT CASE WHEN m.status = 'ongoing' THEN m.id END) as active_meetings,
+                    COUNT(DISTINCT CASE WHEN m.status = 'scheduled' THEN m.id END) as upcoming_meetings,
+                    COUNT(DISTINCT CASE WHEN m.status = 'ended' THEN m.id END) as completed_meetings,
+                    (SELECT COUNT(*) FROM chat_messages WHERE user_id = ?) as total_messages,
+                    (SELECT COUNT(*) FROM reactions WHERE user_id = ?) as total_reactions
+                FROM meetings m
+                LEFT JOIN attendance a ON m.id = a.meeting_id AND a.user_id = ?
+                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id AND mp.user_id = ?
+                WHERE m.created_by = ? OR mp.user_id = ? OR a.user_id = ?`,
+                [userId, userId, userId, userId, userId, userId, userId, userId]
+            );
+            return rows[0];
+        } catch (error) {
+            console.error('Error getting user analytics:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get meeting trends (daily/weekly/monthly)
+     */
+    async getMeetingTrends(period = 'monthly', limit = 12) {
+        try {
+            let groupBy;
+            switch (period) {
+                case 'daily':
+                    groupBy = 'DATE(start_time)';
+                    break;
+                case 'weekly':
+                    groupBy = 'YEARWEEK(start_time)';
+                    break;
+                case 'monthly':
+                default:
+                    groupBy = 'DATE_FORMAT(start_time, "%Y-%m")';
+                    break;
+            }
+
+            const [rows] = await pool.execute(
+                `SELECT 
+                    ${groupBy} as period,
+                    COUNT(*) as meeting_count,
+                    COUNT(DISTINCT created_by) as unique_hosts,
+                    SUM(duration_minutes) as total_minutes,
+                    AVG(duration_minutes) as avg_duration
+                FROM meetings
+                WHERE status = 'ended' AND start_time IS NOT NULL
+                GROUP BY period
+                ORDER BY period DESC
+                LIMIT ?`,
+                [limit]
+            );
+            return rows;
+        } catch (error) {
+            console.error('Error getting meeting trends:', error);
             throw error;
         }
     }

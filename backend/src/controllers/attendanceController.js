@@ -1,5 +1,4 @@
 import attendanceService from '../services/attendanceService.js';
-import participantService from '../services/participantService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class AttendanceController {
@@ -44,18 +43,10 @@ class AttendanceController {
             const meetingId = parseInt(req.params.meetingId);
             const userId = req.user.id;
 
-            // Check access
-            const isParticipant = await participantService.isParticipant(meetingId, userId);
-            const isCreator = await this.isMeetingCreator(meetingId, userId);
-            
-            if (!isParticipant && !isCreator) {
-                return errorResponse(res, 403, 'You do not have access to this meeting');
-            }
-
-            const attendance = await attendanceService.getMeetingAttendance(meetingId);
+            const attendance = await attendanceService.getMeetingAttendance(meetingId, userId);
             return successResponse(res, 200, 'Attendance retrieved', attendance);
         } catch (error) {
-            return errorResponse(res, 500, error.message);
+            return errorResponse(res, 400, error.message);
         }
     }
 
@@ -68,30 +59,51 @@ class AttendanceController {
             const meetingId = parseInt(req.params.meetingId);
             const userId = req.user.id;
 
-            // Only host or admin can view report
-            const isHost = await participantService.isHost(meetingId, userId);
-            const isCreator = await this.isMeetingCreator(meetingId, userId);
-            
-            if (!isHost && !isCreator && req.user.role !== 'admin') {
-                return errorResponse(res, 403, 'Only hosts can view attendance report');
-            }
-
-            const report = await attendanceService.getAttendanceReport(meetingId);
+            const report = await attendanceService.getAttendanceReport(meetingId, userId);
             return successResponse(res, 200, 'Attendance report generated', report);
         } catch (error) {
-            return errorResponse(res, 500, error.message);
+            return errorResponse(res, 403, error.message);
+        }
+    }
+
+    /**
+     * Export attendance report
+     * GET /api/attendance/:meetingId/export
+     */
+    async exportReport(req, res) {
+        try {
+            const meetingId = parseInt(req.params.meetingId);
+            const userId = req.user.id;
+            const format = req.query.format || 'csv';
+
+            // Get report data
+            const report = await attendanceService.getAttendanceReport(meetingId, userId);
+            
+            if (format === 'csv') {
+                const csv = await attendanceService.exportMeetingReport(meetingId, userId, 'csv');
+                
+                res.setHeader('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename=attendance_report_${meetingId}.csv`);
+                return res.send(csv);
+            }
+
+            return successResponse(res, 200, 'Report exported', report);
+        } catch (error) {
+            return errorResponse(res, 403, error.message);
         }
     }
 
     /**
      * Get user attendance history
-     * GET /api/attendance/user
+     * GET /api/attendance/user/history
      */
     async getUserAttendance(req, res) {
         try {
             const userId = req.user.id;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
 
-            const history = await attendanceService.getUserAttendance(userId);
+            const history = await attendanceService.getUserAttendance(userId, page, limit);
             return successResponse(res, 200, 'Attendance history retrieved', history);
         } catch (error) {
             return errorResponse(res, 500, error.message);
@@ -107,28 +119,19 @@ class AttendanceController {
             const meetingId = parseInt(req.params.meetingId);
             const targetUserId = parseInt(req.params.userId);
             const { status } = req.body;
-            const userId = req.user.id;
+            const requesterId = req.user.id;
 
-            // Only host or admin can update status
-            const isHost = await participantService.isHost(meetingId, userId);
-            if (!isHost && req.user.role !== 'admin') {
-                return errorResponse(res, 403, 'Only hosts can update attendance status');
-            }
+            const attendance = await attendanceService.updateStatus(
+                meetingId, 
+                targetUserId, 
+                status, 
+                requesterId
+            );
 
-            const attendance = await attendanceService.updateStatus(meetingId, targetUserId, status);
             return successResponse(res, 200, 'Status updated', attendance);
         } catch (error) {
             return errorResponse(res, 400, error.message);
         }
-    }
-
-    /**
-     * Helper: Check if user is meeting creator
-     */
-    async isMeetingCreator(meetingId, userId) {
-        const { default: meetingRepository } = await import('../repositories/meetingRepository.js');
-        const meeting = await meetingRepository.findById(meetingId);
-        return meeting && meeting.created_by === userId;
     }
 }
 

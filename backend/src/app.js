@@ -17,6 +17,7 @@ import attendanceRoutes from './routes/attendanceRoutes.js';
 import meetingControlsRoutes from './routes/meetingControlsRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import reactionRoutes from './routes/reactionRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 
 
@@ -55,6 +56,8 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/meetings', meetingControlsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reactions', reactionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({
