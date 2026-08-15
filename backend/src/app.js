@@ -12,7 +12,9 @@ import authRoutes from './routes/authRoutes.js';
 import { testConnection } from './config/database.js';
 import meetingRoutes from './routes/meetingRoutes.js';
 import webrtcRoutes from './routes/webrtcRoutes.js';
-
+import participantRoutes from './routes/participantRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
+import meetingControlsRoutes from './routes/meetingControlsRoutes.js';
 // ... rest of code ...
 dotenv.config();
 
@@ -43,7 +45,9 @@ await testConnection();
 app.use('/api/auth', authRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/webrtc', webrtcRoutes); 
-
+app.use('/api/participants', participantRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/meetings', meetingControlsRoutes);
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({
