@@ -10,7 +10,10 @@ import notFoundMiddleware from './middleware/notFoundMiddleware.js';
 import rateLimitMiddleware from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import { testConnection } from './config/database.js';
+import meetingRoutes from './routes/meetingRoutes.js';
+import webrtcRoutes from './routes/webrtcRoutes.js';
 
+// ... rest of code ...
 dotenv.config();
 
 const app = express();
@@ -36,9 +39,10 @@ app.use(rateLimitMiddleware);
 
 // Test database connection
 await testConnection();
-
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/meetings', meetingRoutes);
+app.use('/api/webrtc', webrtcRoutes); 
 
 // Health check
 app.get('/health', (req, res) => {

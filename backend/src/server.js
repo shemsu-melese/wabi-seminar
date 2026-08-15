@@ -1,8 +1,7 @@
 import app from './app.js';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
-import config from './config/environment.js';
 import { setupSocketServer } from './socket/socketServer.js';
+import config from './config/environment.js';
 
 const PORT = config.port;
 
@@ -10,21 +9,12 @@ const PORT = config.port;
 const httpServer = createServer(app);
 
 // Setup Socket.IO
-const io = new Server(httpServer, {
-    cors: {
-        origin: config.client.url,
-        credentials: true,
-        methods: ['GET', 'POST']
-    }
-});
-
-// Setup socket handlers
-setupSocketServer(io);
+setupSocketServer(httpServer);
 
 // Start server
 httpServer.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📡 Socket.IO server attached on port ${PORT}`);
+    console.log(`📡 Socket.IO attached`);
     console.log(`🌍 Environment: ${config.nodeEnv}`);
 });
 
