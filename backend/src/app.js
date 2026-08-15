@@ -18,7 +18,7 @@ import meetingControlsRoutes from './routes/meetingControlsRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import reactionRoutes from './routes/reactionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
-
+import wabifocusRoutes from './routes/wabifocusRoutes.js';
 
 
 // ... rest of code ...
@@ -57,7 +57,7 @@ app.use('/api/meetings', meetingControlsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reactions', reactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
-
+app.use('/api/wabifocus', wabifocusRoutes);
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({
