@@ -1,7 +1,7 @@
 import { meetingSocketHandler } from './meetingSocket.js';
 import { signalingSocketHandler } from './signalingSocket.js';
 import { participantSocketHandler } from './participantSocket.js';
-
+import { chatSocketHandler } from './chatSocket.js';
 // Store active connections
 const activeConnections = new Map();
 
@@ -33,6 +33,7 @@ export const connectionHandler = (socket, io) => {
     meetingSocketHandler(socket, io);
     signalingSocketHandler(socket, io);
     participantSocketHandler(socket, io);
+    chatSocketHandler(socket, io);
 };
 
 const handleJoinMeeting = (socket, io, data) => {
