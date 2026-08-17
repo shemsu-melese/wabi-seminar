@@ -1,46 +1,34 @@
 import { 
     validateEmail, 
     validatePassword, 
-    validateUsername, 
     validateName,
     validateRequired 
 } from '../utils/validators.js';
 
-/**
- * Validate registration request
- */
+// registration request  Validation
+
 export const validateRegister = (req, res, next) => {
-    const { email, username, password, first_name, last_name } = req.body;
+    const { email, password, first_name, last_name } = req.body;
     const errors = [];
 
-    // Validate email
+    // email Validation
     if (!validateRequired(email)) {
         errors.push({ field: 'email', message: 'Email is required' });
     } else if (!validateEmail(email)) {
         errors.push({ field: 'email', message: 'Invalid email format' });
     }
 
-    // Validate username
-    if (!validateRequired(username)) {
-        errors.push({ field: 'username', message: 'Username is required' });
-    } else if (!validateUsername(username)) {
-        errors.push({ 
-            field: 'username', 
-            message: 'Username must be 3-50 characters (alphanumeric and underscore only)' 
-        });
-    }
-
-    // Validate password
+    // password Validation
     if (!validateRequired(password)) {
         errors.push({ field: 'password', message: 'Password is required' });
     } else if (!validatePassword(password)) {
         errors.push({ 
             field: 'password', 
-            message: 'Password must be at least 8 characters with uppercase, lowercase, and number' 
+            message: 'Password must be at least 6 characters with uppercase, lowercase, and number' 
         });
     }
 
-    // Validate first name
+    // first name Validation
     if (!validateRequired(first_name)) {
         errors.push({ field: 'first_name', message: 'First name is required' });
     } else if (!validateName(first_name)) {
@@ -50,7 +38,7 @@ export const validateRegister = (req, res, next) => {
         });
     }
 
-    // Validate last name
+    // last name Validation
     if (!validateRequired(last_name)) {
         errors.push({ field: 'last_name', message: 'Last name is required' });
     } else if (!validateName(last_name)) {
@@ -71,9 +59,8 @@ export const validateRegister = (req, res, next) => {
     next();
 };
 
-/**
- * Validate login request
- */
+ //  login request Validation
+
 export const validateLogin = (req, res, next) => {
     const { email, password } = req.body;
     const errors = [];
@@ -97,9 +84,8 @@ export const validateLogin = (req, res, next) => {
     next();
 };
 
-/**
- * Validate change password request
- */
+ //  change password request Validation
+
 export const validateChangePassword = (req, res, next) => {
     const { current_password, new_password } = req.body;
     const errors = [];
@@ -113,7 +99,7 @@ export const validateChangePassword = (req, res, next) => {
     } else if (!validatePassword(new_password)) {
         errors.push({ 
             field: 'new_password', 
-            message: 'New password must be at least 8 characters with uppercase, lowercase, and number' 
+            message: 'New password must be at least 6 characters with uppercase, lowercase, and number' 
         });
     }
 
@@ -128,35 +114,13 @@ export const validateChangePassword = (req, res, next) => {
     next();
 };
 
-/**
- * Validate refresh token request
- */
-export const validateRefreshToken = (req, res, next) => {
-    const { refresh_token } = req.body;
-    const errors = [];
+ //  profile update request Validation
 
-    if (!validateRequired(refresh_token)) {
-        errors.push({ field: 'refresh_token', message: 'Refresh token is required' });
-    }
-
-    if (errors.length > 0) {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation errors',
-            errors
-        });
-    }
-
-    next();
-};
-
-/**
- * Validate profile update
- */
 export const validateProfileUpdate = (req, res, next) => {
-    const { first_name, last_name, username, bio } = req.body;
+    const { first_name, last_name } = req.body;
     const errors = [];
 
+    // first name Validation
     if (first_name !== undefined) {
         if (!validateRequired(first_name)) {
             errors.push({ field: 'first_name', message: 'First name cannot be empty' });
@@ -168,6 +132,7 @@ export const validateProfileUpdate = (req, res, next) => {
         }
     }
 
+    // last name Validation
     if (last_name !== undefined) {
         if (!validateRequired(last_name)) {
             errors.push({ field: 'last_name', message: 'Last name cannot be empty' });
@@ -179,22 +144,26 @@ export const validateProfileUpdate = (req, res, next) => {
         }
     }
 
-    if (username !== undefined) {
-        if (!validateRequired(username)) {
-            errors.push({ field: 'username', message: 'Username cannot be empty' });
-        } else if (!validateUsername(username)) {
-            errors.push({ 
-                field: 'username', 
-                message: 'Username must be 3-50 characters (alphanumeric and underscore only)' 
-            });
-        }
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation errors',
+            errors
+        });
     }
 
-    if (bio !== undefined && bio.length > 500) {
-        errors.push({ 
-            field: 'bio', 
-            message: 'Bio must be less than 500 characters' 
-        });
+    next();
+};
+
+
+ //refresh token request Validation
+ 
+export const validateRefreshToken = (req, res, next) => {
+    const { refresh_token } = req.body;
+    const errors = [];
+
+    if (!validateRequired(refresh_token)) {
+        errors.push({ field: 'refresh_token', message: 'Refresh token is required' });
     }
 
     if (errors.length > 0) {

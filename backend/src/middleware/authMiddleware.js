@@ -35,7 +35,6 @@ export const authenticate = async (req, res, next) => {
             id: user.id,
             email: user.email,
             role: user.role,
-            username: user.username,
             first_name: user.first_name,
             last_name: user.last_name
         };
@@ -55,7 +54,6 @@ export const authenticate = async (req, res, next) => {
 
 /**
  * Authorize user by role
- * @param {...string} roles - Allowed roles
  */
 export const authorize = (...roles) => {
     return (req, res, next) => {
@@ -69,31 +67,6 @@ export const authorize = (...roles) => {
 
         next();
     };
-};
-
-/**
- * Check if user is host (meeting specific)
- */
-export const isHost = async (req, res, next) => {
-    try {
-        const { meetingId } = req.params;
-        const userId = req.user.id;
-        const { pool } = await import('../config/database.js');
-
-        const [rows] = await pool.execute(
-            'SELECT * FROM meeting_participants WHERE meeting_id = ? AND user_id = ? AND role = "host"',
-            [meetingId, userId]
-        );
-
-        if (rows.length === 0) {
-            return errorResponse(res, 403, 'Only meeting hosts can perform this action');
-        }
-
-        req.isHost = true;
-        next();
-    } catch (error) {
-        return errorResponse(res, 500, 'Error checking host status');
-    }
 };
 
 /**
@@ -114,7 +87,8 @@ export const optionalAuth = async (req, res, next) => {
                             id: user.id,
                             email: user.email,
                             role: user.role,
-                            username: user.username
+                            first_name: user.first_name,
+                            last_name: user.last_name
                         };
                     }
                 } catch (error) {

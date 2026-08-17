@@ -3,22 +3,15 @@ import userRepository from '../repositories/userRepository.js';
 import { generateToken, generateRefreshToken } from '../utils/generateToken.js';
 
 class AuthService {
-    /**
-     * Register new user
-     */
-    async register(userData) {
-        const { email, username, password, first_name, last_name, role } = userData;
+
+//  Register new user
+      async register(userData) {
+        const { email, password, first_name, last_name, role } = userData;
 
         // Check if email exists
         const existingEmail = await userRepository.findByEmail(email);
         if (existingEmail) {
             throw new Error('Email already registered');
-        }
-
-        // Check if username exists
-        const existingUsername = await userRepository.findByUsername(username);
-        if (existingUsername) {
-            throw new Error('Username already taken');
         }
 
         // Hash password (10 salt rounds)
@@ -28,7 +21,6 @@ class AuthService {
         // Create user
         const user = await userRepository.create({
             email,
-            username,
             password_hash,
             first_name,
             last_name,
@@ -46,9 +38,8 @@ class AuthService {
         };
     }
 
-    /**
-     * Login user
-     */
+    //  Login user
+     
     async login(email, password) {
         // Find user by email
         const user = await userRepository.findByEmail(email);
@@ -84,9 +75,8 @@ class AuthService {
         };
     }
 
-    /**
-     * Get user profile
-     */
+    //  Get user profile
+    
     async getProfile(userId) {
         const user = await userRepository.findById(userId);
         if (!user) {
@@ -95,30 +85,20 @@ class AuthService {
         return user;
     }
 
-    /**
-     * Update user profile
-     */
+     //  Update user profile
+     
     async updateProfile(userId, userData) {
         const user = await userRepository.findById(userId);
         if (!user) {
             throw new Error('User not found');
         }
 
-        // Check username uniqueness if changed
-        if (userData.username && userData.username !== user.username) {
-            const existingUser = await userRepository.findByUsername(userData.username);
-            if (existingUser) {
-                throw new Error('Username already taken');
-            }
-        }
-
         const updatedUser = await userRepository.update(userId, userData);
         return updatedUser;
     }
 
-    /**
-     * Change password
-     */
+     //  Change password
+     
     async changePassword(userId, currentPassword, newPassword) {
         // Get user with password
         const user = await userRepository.findByEmail(
@@ -147,9 +127,8 @@ class AuthService {
         return { message: 'Password updated successfully' };
     }
 
-    /**
-     * Refresh token
-     */
+     //  Refresh token
+     
     async refreshToken(refreshToken) {
         try {
             const { verifyToken } = await import('../utils/generateToken.js');
@@ -171,35 +150,16 @@ class AuthService {
         }
     }
 
-    /**
-     * Get user with stats
-     */
+    //  Get user with stats
+     
     async getUserWithStats(userId) {
         const user = await this.getProfile(userId);
         const stats = await userRepository.getUserStats(userId);
         return { ...user, stats };
     }
 
-    /**
-     * Validate user credentials for login
-     */
-    async validateUser(email, password) {
-        const user = await userRepository.findByEmail(email);
-        if (!user) {
-            return null;
-        }
-
-        const isValid = await bcrypt.compare(password, user.password_hash);
-        if (!isValid) {
-            return null;
-        }
-
-        return user;
-    }
-
-    /**
-     * Get all users (admin only)
-     */
+//    Get all users (admin only)
+     
     async getAllUsers(page = 1, limit = 20) {
         const offset = (page - 1) * limit;
         const users = await userRepository.findAll(limit, offset);
@@ -216,9 +176,8 @@ class AuthService {
         };
     }
 
-    /**
-     * Delete user (admin only)
-     */
+    //   Delete user (admin only)
+     
     async deleteUser(userId) {
         const user = await userRepository.findById(userId);
         if (!user) {
@@ -226,6 +185,15 @@ class AuthService {
         }
         await userRepository.delete(userId);
         return { message: 'User deleted successfully' };
+    }
+
+    //   Search users by name
+     
+    async searchUsers(searchTerm) {
+        if (!searchTerm || searchTerm.trim().length < 2) {
+            throw new Error('Search term must be at least 2 characters');
+        }
+        return await userRepository.searchByName(searchTerm.trim());
     }
 }
 

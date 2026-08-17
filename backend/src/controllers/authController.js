@@ -1,18 +1,15 @@
 import authService from '../services/authService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
-
 class AuthController {
-    /**
-     * Register new user
-     * POST /api/auth/register
-     */
+    // Register new user
+    // POST /api/auth/register
+     
     async register(req, res) {
         try {
-            const { email, username, password, first_name, last_name, role } = req.body;
+            const { email, password, first_name, last_name, role } = req.body;
             
             const result = await authService.register({
                 email,
-                username,
                 password,
                 first_name,
                 last_name,
@@ -25,10 +22,9 @@ class AuthController {
         }
     }
 
-    /**
-     * Login user
-     * POST /api/auth/login
-     */
+    // Login user
+    // POST /api/auth/login
+
     async login(req, res) {
         try {
             const { email, password } = req.body;
@@ -41,10 +37,9 @@ class AuthController {
         }
     }
 
-    /**
-     * Get current user profile
-     * GET /api/auth/me
-     */
+    //  Get current user profile
+    //  GET /api/auth/me
+     
     async getMe(req, res) {
         try {
             const userId = req.user.id;
@@ -56,10 +51,9 @@ class AuthController {
         }
     }
 
-    /**
-     * Get user profile with stats
-     * GET /api/auth/me/stats
-     */
+    //  Get user profile with stats
+    //  GET /api/auth/me/stats
+     
     async getMeWithStats(req, res) {
         try {
             const userId = req.user.id;
@@ -71,21 +65,17 @@ class AuthController {
         }
     }
 
-    /**
-     * Update user profile
-     * PUT /api/auth/profile
-     */
+    //  Update user profile
+    //  PUT /api/auth/profile
+     
     async updateProfile(req, res) {
         try {
             const userId = req.user.id;
-            const { first_name, last_name, username, bio, avatar_url } = req.body;
+            const { first_name, last_name } = req.body;
 
             const user = await authService.updateProfile(userId, {
                 first_name,
-                last_name,
-                username,
-                bio,
-                avatar_url
+                last_name
             });
 
             return successResponse(res, 200, 'Profile updated successfully', user);
@@ -94,10 +84,8 @@ class AuthController {
         }
     }
 
-    /**
-     * Change password
-     * PUT /api/auth/change-password
-     */
+    //  Change password
+    //  PUT /api/auth/change-password
     async changePassword(req, res) {
         try {
             const userId = req.user.id;
@@ -115,10 +103,8 @@ class AuthController {
         }
     }
 
-    /**
-     * Refresh token
-     * POST /api/auth/refresh-token
-     */
+    //  Refresh token
+    //  POST /api/auth/refresh-token
     async refreshToken(req, res) {
         try {
             const { refresh_token } = req.body;
@@ -135,24 +121,18 @@ class AuthController {
         }
     }
 
-    /**
-     * Logout
-     * POST /api/auth/logout
-     */
+    //   Logout
+    //  POST /api/auth/logout
     async logout(req, res) {
         try {
-            // Client-side logout - remove token on client
-            // Server-side: we don't store tokens, so just return success
             return successResponse(res, 200, 'Logout successful');
         } catch (error) {
             return errorResponse(res, 500, error.message);
         }
     }
 
-    /**
-     * Check authentication status
-     * GET /api/auth/check
-     */
+    //  Check authentication status
+    //  GET /api/auth/check
     async checkAuth(req, res) {
         try {
             const userId = req.user.id;
@@ -167,10 +147,9 @@ class AuthController {
         }
     }
 
-    /**
-     * Get all users (admin only)
-     * GET /api/auth/users
-     */
+    //  Get all users (admin only)
+    //  GET /api/auth/users
+     
     async getAllUsers(req, res) {
         try {
             const page = parseInt(req.query.page) || 1;
@@ -184,15 +163,12 @@ class AuthController {
         }
     }
 
-    /**
-     * Delete user (admin only)
-     * DELETE /api/auth/users/:id
-     */
+    //  Delete user (admin only)
+    //  DELETE /api/auth/users/:id
     async deleteUser(req, res) {
         try {
             const userId = parseInt(req.params.id);
             
-            // Prevent admin from deleting themselves
             if (userId === req.user.id) {
                 return errorResponse(res, 400, 'You cannot delete your own account');
             }
@@ -200,6 +176,24 @@ class AuthController {
             const result = await authService.deleteUser(userId);
 
             return successResponse(res, 200, result.message);
+        } catch (error) {
+            return errorResponse(res, 400, error.message);
+        }
+    }
+
+    //  Search users (admin only)
+    //  GET /api/auth/users/search
+    async searchUsers(req, res) {
+        try {
+            const { q } = req.query;
+            
+            if (!q || q.trim().length < 2) {
+                return errorResponse(res, 400, 'Search term must be at least 2 characters');
+            }
+
+            const users = await authService.searchUsers(q);
+
+            return successResponse(res, 200, 'Users found', users);
         } catch (error) {
             return errorResponse(res, 400, error.message);
         }

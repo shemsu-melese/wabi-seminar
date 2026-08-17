@@ -1,9 +1,6 @@
 import { pool } from '../config/database.js';
-
 class UserRepository {
-    /**
-     * Find user by email
-     */
+    //  Find user by email
     async findByEmail(email) {
         try {
             const [rows] = await pool.execute(
@@ -17,15 +14,13 @@ class UserRepository {
         }
     }
 
-    /**
-     * Find user by ID
-     */
+    //  Find user by ID
     async findById(id) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    id, email, username, first_name, last_name, 
-                    avatar_url, bio, role, status, 
+                    id, email, first_name, last_name, 
+                    role, status, 
                     created_at, updated_at, last_login_at 
                 FROM users 
                 WHERE id = ? AND deleted_at IS NULL`,
@@ -38,30 +33,12 @@ class UserRepository {
         }
     }
 
-    /**
-     * Find user by username
-     */
-    async findByUsername(username) {
-        try {
-            const [rows] = await pool.execute(
-                'SELECT * FROM users WHERE username = ? AND deleted_at IS NULL',
-                [username]
-            );
-            return rows[0] || null;
-        } catch (error) {
-            console.error('Error finding user by username:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Create new user
-     */
+     //  Create new user
+     
     async create(userData) {
         try {
             const { 
                 email, 
-                username, 
                 password_hash, 
                 first_name, 
                 last_name, 
@@ -70,9 +47,9 @@ class UserRepository {
 
             const [result] = await pool.execute(
                 `INSERT INTO users 
-                (email, username, password_hash, first_name, last_name, role) 
-                VALUES (?, ?, ?, ?, ?, ?)`,
-                [email, username, password_hash, first_name, last_name, role]
+                (email, password_hash, first_name, last_name, role) 
+                VALUES (?, ?, ?, ?, ?)`,
+                [email, password_hash, first_name, last_name, role]
             );
 
             return this.findById(result.insertId);
@@ -82,12 +59,11 @@ class UserRepository {
         }
     }
 
-    /**
-     * Update user profile
-     */
+    //   Update user profile
+     
     async update(id, userData) {
         try {
-            const { first_name, last_name, username, bio, avatar_url } = userData;
+            const { first_name, last_name } = userData;
             
             const updates = [];
             const values = [];
@@ -99,18 +75,6 @@ class UserRepository {
             if (last_name !== undefined) {
                 updates.push('last_name = ?');
                 values.push(last_name);
-            }
-            if (username !== undefined) {
-                updates.push('username = ?');
-                values.push(username);
-            }
-            if (bio !== undefined) {
-                updates.push('bio = ?');
-                values.push(bio);
-            }
-            if (avatar_url !== undefined) {
-                updates.push('avatar_url = ?');
-                values.push(avatar_url);
             }
 
             if (updates.length === 0) {
@@ -133,9 +97,8 @@ class UserRepository {
         }
     }
 
-    /**
-     * Update user password
-     */
+    //   Update user password
+    
     async updatePassword(id, password_hash) {
         try {
             await pool.execute(
@@ -148,9 +111,9 @@ class UserRepository {
         }
     }
 
-    /**
-     * Update last login timestamp
-     */
+    
+    //   Update last login timestamp
+     
     async updateLastLogin(id) {
         try {
             await pool.execute(
@@ -163,9 +126,9 @@ class UserRepository {
         }
     }
 
-    /**
-     * Soft delete user
-     */
+    
+    // Soft delete user
+     
     async delete(id) {
         try {
             await pool.execute(
@@ -178,9 +141,8 @@ class UserRepository {
         }
     }
 
-    /**
-     * Check if user exists by email
-     */
+    //   Check if user exists by email
+     
     async existsByEmail(email) {
         try {
             const user = await this.findByEmail(email);
@@ -191,9 +153,8 @@ class UserRepository {
         }
     }
 
-    /**
-     * Get user statistics
-     */
+    //   Get user statistics
+     
     async getUserStats(id) {
         try {
             const [rows] = await pool.execute(
@@ -220,15 +181,13 @@ class UserRepository {
         }
     }
 
-    /**
-     * Get all users (admin only)
-     */
+    //   Get all users (admin only)
     async findAll(limit = 50, offset = 0) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    id, email, username, first_name, last_name, 
-                    avatar_url, bio, role, status, 
+                    id, email, first_name, last_name, 
+                    role, status, 
                     created_at, updated_at, last_login_at 
                 FROM users 
                 WHERE deleted_at IS NULL
@@ -243,9 +202,8 @@ class UserRepository {
         }
     }
 
-    /**
-     * Count total users
-     */
+    //  Count total users
+    
     async count() {
         try {
             const [rows] = await pool.execute(
@@ -254,6 +212,27 @@ class UserRepository {
             return rows[0].total;
         } catch (error) {
             console.error('Error counting users:', error);
+            throw error;
+        }
+    }
+
+    //  Find users by name (search functionality)
+     
+    async searchByName(searchTerm, limit = 20) {
+        try {
+            const [rows] = await pool.execute(
+                `SELECT 
+                    id, email, first_name, last_name, 
+                    role, status
+                FROM users 
+                WHERE deleted_at IS NULL
+                AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)
+                LIMIT ?`,
+                [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`, limit]
+            );
+            return rows;
+        } catch (error) {
+            console.error('Error searching users:', error);
             throw error;
         }
     }
