@@ -1,6 +1,8 @@
 import { pool } from '../config/database.js';
 class MeetingRepository {
+
     //   Create a new meeting
+    
     async create(meetingData) {
         try {
             const {
@@ -19,8 +21,7 @@ class MeetingRepository {
                 allow_screen_sharing,
                 allow_chat,
                 allow_reactions,
-                allow_raise_hand,
-                allow_file_sharing
+                allow_raise_hand
             } = meetingData;
 
             const [result] = await pool.execute(
@@ -28,8 +29,8 @@ class MeetingRepository {
                     code, title, description, created_by, start_time, end_time,
                     duration_minutes, meeting_type, max_participants, password_hash,
                     is_locked, waiting_room_enabled, allow_screen_sharing,
-                    allow_chat, allow_reactions, allow_raise_hand, allow_file_sharing
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    allow_chat, allow_reactions, allow_raise_hand
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     code, 
                     title, 
@@ -46,8 +47,7 @@ class MeetingRepository {
                     allow_screen_sharing !== undefined ? allow_screen_sharing : true,
                     allow_chat !== undefined ? allow_chat : true,
                     allow_reactions !== undefined ? allow_reactions : true,
-                    allow_raise_hand !== undefined ? allow_raise_hand : true,
-                    allow_file_sharing !== undefined ? allow_file_sharing : true
+                    allow_raise_hand !== undefined ? allow_raise_hand : true
                 ]
             );
 
@@ -58,7 +58,7 @@ class MeetingRepository {
         }
     }
 
-    //  Find meeting by ID
+    //   Find meeting by ID
      
     async findById(id) {
         try {
@@ -80,7 +80,7 @@ class MeetingRepository {
         }
     }
 
-    //  Find meeting by code 
+    //   Find meeting by code
      
     async findByCode(code) {
         try {
@@ -102,8 +102,8 @@ class MeetingRepository {
         }
     }
 
-    //  Get meetings for a user
-    
+    //   Get meetings for a user
+     
     async findByUser(userId, status = null, limit = 50, offset = 0) {
         try {
             let query = `
@@ -175,7 +175,7 @@ class MeetingRepository {
                 'title', 'description', 'start_time', 'end_time',
                 'duration_minutes', 'meeting_type', 'max_participants',
                 'is_locked', 'waiting_room_enabled', 'allow_screen_sharing',
-                'allow_chat', 'allow_reactions', 'allow_raise_hand', 'allow_file_sharing'
+                'allow_chat', 'allow_reactions', 'allow_raise_hand'
             ];
 
             for (const field of fields) {
@@ -207,7 +207,7 @@ class MeetingRepository {
         }
     }
 
-    // Update meeting status
+    //   Update meeting status
      
     async updateStatus(id, status) {
         try {
@@ -222,7 +222,7 @@ class MeetingRepository {
         }
     }
 
-// Start meeting (set status to ongoing)
+    //   Start meeting (set status to ongoing)
      
     async startMeeting(id) {
         try {
@@ -237,7 +237,7 @@ class MeetingRepository {
         }
     }
 
-    //  End meeting (set status to ended)
+    //   End meeting (set status to ended)
      
     async endMeeting(id) {
         try {
@@ -252,8 +252,7 @@ class MeetingRepository {
         }
     }
 
-    //   Delete meeting 
-     
+    //   Delete meeting
     async delete(id) {
         try {
             await pool.execute(
@@ -266,7 +265,7 @@ class MeetingRepository {
         }
     }
 
-    //  Count meetings for a user
+    //   Count meetings for a user
     async countByUser(userId) {
         try {
             const [rows] = await pool.execute(
@@ -284,7 +283,8 @@ class MeetingRepository {
         }
     }
 
-    //   Get upcoming meetings for a user
+    //  Get upcoming meetings for a user
+     
     async getUpcomingMeetings(userId, limit = 10) {
         try {
             const [rows] = await pool.execute(
@@ -310,7 +310,7 @@ class MeetingRepository {
         }
     }
 
-    //   Get active meetings
+    //  Get active meetings
      
     async getActiveMeetings() {
         try {
@@ -374,8 +374,7 @@ class MeetingRepository {
         }
     }
 
-    //  Get meeting statistics
-     
+    //   Get meeting statistics
     async getStatistics(userId = null) {
         try {
             let query = `
@@ -410,8 +409,7 @@ class MeetingRepository {
         }
     }
 
-    //   Get meeting with full details including participants and WabiFocus 
-
+    //   Get meeting with full details including participants and WabiFocus
     async getMeetingWithDetails(id) {
         try {
             const [rows] = await pool.execute(
@@ -469,8 +467,7 @@ class MeetingRepository {
         }
     }
 
-    //  Get meetings by date range
-     
+    //   Get meetings by date range
     async findByDateRange(startDate, endDate, userId = null) {
         try {
             let query = `
@@ -518,7 +515,6 @@ class MeetingRepository {
     }
 
     //   Lock/unlock meeting
-     
     async setLockStatus(id, isLocked) {
         try {
             await pool.execute(

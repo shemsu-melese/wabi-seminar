@@ -5,9 +5,9 @@ import wabifocusRepository from '../repositories/wabifocusRepository.js';
 import { generateMeetingCode } from '../utils/generateMeetingCode.js';
 
 class MeetingService {
-    /**
-     * Create a new meeting
-     */
+    
+    //   Create a new meeting
+     
     async createMeeting(userId, meetingData) {
         // Generate unique meeting code
         let code;
@@ -49,8 +49,7 @@ class MeetingService {
             allow_screen_sharing: meetingData.allow_screen_sharing !== undefined ? meetingData.allow_screen_sharing : true,
             allow_chat: meetingData.allow_chat !== undefined ? meetingData.allow_chat : true,
             allow_reactions: meetingData.allow_reactions !== undefined ? meetingData.allow_reactions : true,
-            allow_raise_hand: meetingData.allow_raise_hand !== undefined ? meetingData.allow_raise_hand : true,
-            allow_file_sharing: meetingData.allow_file_sharing !== undefined ? meetingData.allow_file_sharing : true
+            allow_raise_hand: meetingData.allow_raise_hand !== undefined ? meetingData.allow_raise_hand : true
         });
 
         // Add creator as host
@@ -114,9 +113,8 @@ class MeetingService {
         return meetingWithDetails;
     }
 
-    /**
-     * Get meeting details with participants and WabiFocus
-     */
+    //   Get meeting details with participants and WabiFocus
+     
     async getMeetingDetails(meetingId, userId = null) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -153,9 +151,8 @@ class MeetingService {
         };
     }
 
-    /**
-     * Join a meeting
-     */
+    //   Join a meeting
+     
     async joinMeeting(userId, meetingId, password = null) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -212,9 +209,8 @@ class MeetingService {
         return this.getMeetingDetails(meetingId, userId);
     }
 
-    /**
-     * Leave a meeting
-     */
+    //   Leave a meeting
+     
     async leaveMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -249,9 +245,8 @@ class MeetingService {
         return { message: 'Left meeting successfully' };
     }
 
-    /**
-     * Start a meeting
-     */
+    //   Start a meeting
+     
     async startMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -276,9 +271,8 @@ class MeetingService {
         return updatedMeeting;
     }
 
-    /**
-     * End a meeting
-     */
+    //   End a meeting
+     
     async endMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -299,9 +293,8 @@ class MeetingService {
         return updatedMeeting;
     }
 
-    /**
-     * Get user's meetings
-     */
+    //   Get user's meetings
+    
     async getUserMeetings(userId, status = null, page = 1, limit = 20) {
         const offset = (page - 1) * limit;
         const meetings = await meetingRepository.findByUser(userId, status, limit, offset);
@@ -318,16 +311,13 @@ class MeetingService {
         };
     }
 
-    /**
-     * Get upcoming meetings for a user
-     */
+    //   Get upcoming meetings for a user
+    
     async getUpcomingMeetings(userId) {
         return await meetingRepository.getUpcomingMeetings(userId);
     }
 
-    /**
-     * Update meeting
-     */
+    //   Update meeting
     async updateMeeting(userId, meetingId, data) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -348,9 +338,8 @@ class MeetingService {
         return updatedMeeting;
     }
 
-    /**
-     * Delete meeting
-     */
+    //   Delete meeting
+     
     async deleteMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -367,26 +356,172 @@ class MeetingService {
         return { message: 'Meeting deleted successfully' };
     }
 
-    /**
-     * Get meeting statistics
-     */
+    //   Get meeting statistics
+     
     async getMeetingStats(userId = null) {
         return await meetingRepository.getStatistics(userId);
     }
 
-    /**
-     * Get meeting attendance
-     */
+    //   Get meeting attendance
     async getAttendance(meetingId) {
-        // This will be implemented in attendance phase
-        return [];
+        try {
+            const { default: attendanceRepository } = await import('../repositories/attendanceRepository.js');
+            return await attendanceRepository.findByMeeting(meetingId);
+        } catch (error) {
+            console.error('Error getting attendance:', error);
+            return [];
+        }
     }
 
-    /**
-     * Get active meetings
-     */
+    //   Get active meetings
     async getActiveMeetings() {
         return await meetingRepository.getActiveMeetings();
+    }
+
+    //   Get meeting by code
+    async getMeetingByCode(code, userId) {
+        const meeting = await meetingRepository.findByCode(code);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        // Check if user has access
+        const isParticipant = await participantRepository.isParticipant(meeting.id, userId);
+        const isCreator = meeting.created_by === userId;
+        if (!isParticipant && !isCreator) {
+            throw new Error('You do not have access to this meeting');
+        }
+
+        return this.getMeetingDetails(meeting.id, userId);
+    }
+
+    //   Lock meeting
+    async lockMeeting(userId, meetingId) {
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        const isHost = await participantRepository.isHost(meetingId, userId);
+        if (!isHost) {
+            throw new Error('Only the host can lock the meeting');
+        }
+
+        return await meetingRepository.setLockStatus(meetingId, true);
+    }
+
+    //   Unlock meeting
+     
+    async unlockMeeting(userId, meetingId) {
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        const isHost = await participantRepository.isHost(meetingId, userId);
+        if (!isHost) {
+            throw new Error('Only the host can unlock the meeting');
+        }
+
+        return await meetingRepository.setLockStatus(meetingId, false);
+    }
+
+    //   Enable waiting room
+     
+    async enableWaitingRoom(userId, meetingId) {
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        const isHost = await participantRepository.isHost(meetingId, userId);
+        if (!isHost) {
+            throw new Error('Only the host can manage waiting room');
+        }
+
+        return await meetingRepository.setWaitingRoom(meetingId, true);
+    }
+
+    //   Disable waiting room
+    async disableWaitingRoom(userId, meetingId) {
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        const isHost = await participantRepository.isHost(meetingId, userId);
+        if (!isHost) {
+            throw new Error('Only the host can manage waiting room');
+        }
+
+        return await meetingRepository.setWaitingRoom(meetingId, false);
+    }
+
+    //   Get meeting by ID (without access check - for internal use)
+    async getMeetingById(meetingId) {
+        return await meetingRepository.findById(meetingId);
+    }
+
+    //   Check if user is host
+    async isHost(meetingId, userId) {
+        return await participantRepository.isHost(meetingId, userId);
+    }
+
+    //   Check if user is participant
+    async isParticipant(meetingId, userId) {
+        return await participantRepository.isParticipant(meetingId, userId);
+    }
+
+    //   Get participant count
+     
+    async getParticipantCount(meetingId) {
+        return await participantRepository.getParticipantCount(meetingId);
+    }
+
+    //  Search meetings
+     
+    async searchMeetings(userId, searchTerm, page = 1, limit = 20) {
+        const offset = (page - 1) * limit;
+        const meetings = await meetingRepository.search(searchTerm, userId, limit, offset);
+        const total = await meetingRepository.countByUser(userId);
+
+        return {
+            meetings,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
+
+    //   Get meetings by date range
+     
+    async getMeetingsByDateRange(userId, startDate, endDate) {
+        return await meetingRepository.findByDateRange(startDate, endDate, userId);
+    }
+
+    //   Update meeting password
+    async updateMeetingPassword(userId, meetingId, newPassword) {
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        const isHost = await participantRepository.isHost(meetingId, userId);
+        if (!isHost) {
+            throw new Error('Only the host can update meeting password');
+        }
+
+        if (newPassword) {
+            const saltRounds = 10;
+            const password_hash = await bcrypt.hash(newPassword, saltRounds);
+            return await meetingRepository.updatePassword(meetingId, password_hash);
+        } else {
+            // Remove password
+            return await meetingRepository.updatePassword(meetingId, null);
+        }
     }
 }
 
