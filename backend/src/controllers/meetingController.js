@@ -45,17 +45,9 @@ class MeetingController {
             const { code } = req.params;
             const userId = req.user.id;
 
-            // Find meeting by code
-            const { default: meetingRepository } = await import('../repositories/meetingRepository.js');
-            const meeting = await meetingRepository.findByCode(code);
+            const meeting = await meetingService.getMeetingByCode(code, userId);
 
-            if (!meeting) {
-                return errorResponse(res, 404, 'Meeting not found');
-            }
-
-            const meetingDetails = await meetingService.getMeetingDetails(meeting.id, userId);
-
-            return successResponse(res, 200, 'Meeting details retrieved', meetingDetails);
+            return successResponse(res, 200, 'Meeting details retrieved', meeting);
         } catch (error) {
             return errorResponse(res, 404, error.message);
         }

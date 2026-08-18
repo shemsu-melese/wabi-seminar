@@ -1,6 +1,6 @@
 import express from 'express';
 import meetingController from '../controllers/meetingController.js';
-import { authenticate, authorize } from '../middleware/authMiddleware.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 import { 
     validateCreateMeeting,
     validateJoinMeeting,

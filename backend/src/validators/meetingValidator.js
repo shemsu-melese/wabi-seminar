@@ -1,220 +1,163 @@
-import meetingService from '../services/meetingService.js';
-import { successResponse, errorResponse } from '../utils/response.js';
-class MeetingController {
-    
-    //   Create a new meeting
-    //   POST /api/meetings
-     
-    async createMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingData = req.body;
+import { validateRequired } from '../utils/validators.js';
 
-            const meeting = await meetingService.createMeeting(userId, meetingData);
+/**
+ * Validate meeting creation
+ */
+export const validateCreateMeeting = (req, res, next) => {
+    const { title, start_time, duration_minutes } = req.body;
+    const errors = [];
 
-            return successResponse(res, 201, 'Meeting created successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+    // Validate title
+    if (!validateRequired(title)) {
+        errors.push({ field: 'title', message: 'Meeting title is required' });
+    } else if (title.length > 255) {
+        errors.push({ field: 'title', message: 'Title must be less than 255 characters' });
+    }
+
+    // Validate start_time (optional)
+    if (start_time) {
+        const date = new Date(start_time);
+        if (isNaN(date.getTime())) {
+            errors.push({ field: 'start_time', message: 'Invalid date format' });
         }
     }
 
-    //  Get meeting details
-    //  GET /api/meetings/:id
-    
-    async getMeeting(req, res) {
-        try {
-            const meetingId = parseInt(req.params.id);
-            const userId = req.user.id;
-
-            const meeting = await meetingService.getMeetingDetails(meetingId, userId);
-
-            return successResponse(res, 200, 'Meeting details retrieved', meeting);
-        } catch (error) {
-            return errorResponse(res, 404, error.message);
+    // Validate duration_minutes (optional)
+    if (duration_minutes !== undefined && duration_minutes !== null) {
+        if (typeof duration_minutes !== 'number' || duration_minutes < 1 || duration_minutes > 1440) {
+            errors.push({ field: 'duration_minutes', message: 'Duration must be between 1 and 1440 minutes' });
         }
     }
 
-    //   Get meeting by code
-    //   GET /api/meetings/code/:code
-     
-    async getMeetingByCode(req, res) {
-        try {
-            const { code } = req.params;
-            const userId = req.user.id;
+    // Validate meeting_type (optional)
+    const validTypes = ['seminar', 'business', 'education', 'personal', 'other'];
+    if (req.body.meeting_type && !validTypes.includes(req.body.meeting_type)) {
+        errors.push({ 
+            field: 'meeting_type', 
+            message: 'Meeting type must be one of: ' + validTypes.join(', ') 
+        });
+    }
 
-            const { default: meetingRepository } = await import('../repositories/meetingRepository.js');
-            const meeting = await meetingRepository.findByCode(code);
-
-            if (!meeting) {
-                return errorResponse(res, 404, 'Meeting not found');
-            }
-
-            const meetingDetails = await meetingService.getMeetingDetails(meeting.id, userId);
-
-            return successResponse(res, 200, 'Meeting details retrieved', meetingDetails);
-        } catch (error) {
-            return errorResponse(res, 404, error.message);
+    // Validate max_participants (optional)
+    if (req.body.max_participants !== undefined) {
+        if (typeof req.body.max_participants !== 'number' || req.body.max_participants < 1) {
+            errors.push({ field: 'max_participants', message: 'Max participants must be at least 1' });
         }
     }
 
-    //   Join a meeting
-    //   POST /api/meetings/:id/join
-     
-    async joinMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-            const { password } = req.body;
-
-            const meeting = await meetingService.joinMeeting(userId, meetingId, password);
-
-            return successResponse(res, 200, 'Joined meeting successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+    // Validate password (optional)
+    if (req.body.password) {
+        if (req.body.password.length < 4) {
+            errors.push({ field: 'password', message: 'Password must be at least 4 characters' });
         }
-    }
-    //   Leave a meeting
-    //   POST /api/meetings/:id/leave
-     
-    async leaveMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const result = await meetingService.leaveMeeting(userId, meetingId);
-
-            return successResponse(res, 200, result.message);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+        if (req.body.password.length > 50) {
+            errors.push({ field: 'password', message: 'Password must be less than 50 characters' });
         }
     }
 
-
-    //  Start a meeting
-    //  POST /api/meetings/:id/start
-    
-    async startMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const meeting = await meetingService.startMeeting(userId, meetingId);
-
-            return successResponse(res, 200, 'Meeting started successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+    // Validate WabiFocus items
+    if (req.body.wabifocus) {
+        const { goal, agenda, outcomes, action_items } = req.body.wabifocus;
+        
+        if (goal && typeof goal !== 'string') {
+            errors.push({ field: 'wabifocus.goal', message: 'Goal must be a string' });
+        }
+        
+        if (agenda && !Array.isArray(agenda)) {
+            errors.push({ field: 'wabifocus.agenda', message: 'Agenda must be an array' });
+        }
+        
+        if (outcomes && typeof outcomes !== 'string') {
+            errors.push({ field: 'wabifocus.outcomes', message: 'Outcomes must be a string' });
+        }
+        
+        if (action_items && !Array.isArray(action_items)) {
+            errors.push({ field: 'wabifocus.action_items', message: 'Action items must be an array' });
         }
     }
 
-   
-    //   End a meeting
-    //   POST /api/meetings/:id/end
-    
-    async endMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation errors',
+            errors
+        });
+    }
 
-            const meeting = await meetingService.endMeeting(userId, meetingId);
+    next();
+};
 
-            return successResponse(res, 200, 'Meeting ended successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+/**
+ * Validate join meeting
+ */
+export const validateJoinMeeting = (req, res, next) => {
+    const { password } = req.body;
+    const errors = [];
+
+    if (password !== undefined && password.length > 50) {
+        errors.push({ field: 'password', message: 'Password must be less than 50 characters' });
+    }
+
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation errors',
+            errors
+        });
+    }
+
+    next();
+};
+
+/**
+ * Validate update meeting
+ */
+export const validateUpdateMeeting = (req, res, next) => {
+    const { title, start_time, duration_minutes, meeting_type, max_participants } = req.body;
+    const errors = [];
+
+    if (title !== undefined) {
+        if (title.length > 255) {
+            errors.push({ field: 'title', message: 'Title must be less than 255 characters' });
         }
     }
 
-    //   Get user's meetings
-    //   GET /api/meetings
-     
-    async getUserMeetings(req, res) {
-        try {
-            const userId = req.user.id;
-            const status = req.query.status || null;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 20;
-
-            const result = await meetingService.getUserMeetings(userId, status, page, limit);
-
-            return successResponse(res, 200, 'Meetings retrieved successfully', result);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
+    if (start_time) {
+        const date = new Date(start_time);
+        if (isNaN(date.getTime())) {
+            errors.push({ field: 'start_time', message: 'Invalid date format' });
         }
     }
 
-    //   Get upcoming meetings
-    //   GET /api/meetings/upcoming
-    async getUpcomingMeetings(req, res) {
-        try {
-            const userId = req.user.id;
-
-            const meetings = await meetingService.getUpcomingMeetings(userId);
-
-            return successResponse(res, 200, 'Upcoming meetings retrieved', meetings);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
+    if (duration_minutes !== undefined && duration_minutes !== null) {
+        if (typeof duration_minutes !== 'number' || duration_minutes < 1 || duration_minutes > 1440) {
+            errors.push({ field: 'duration_minutes', message: 'Duration must be between 1 and 1440 minutes' });
         }
     }
 
-    //   Update meeting
-    //   PUT /api/meetings/:id
-    async updateMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-            const data = req.body;
-
-            // Remove fields that are no longer needed
-            delete data.is_recorded;
-            delete data.allow_file_sharing;
-
-            const meeting = await meetingService.updateMeeting(userId, meetingId, data);
-
-            return successResponse(res, 200, 'Meeting updated successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+    if (meeting_type) {
+        const validTypes = ['seminar', 'business', 'education', 'personal', 'other'];
+        if (!validTypes.includes(meeting_type)) {
+            errors.push({ 
+                field: 'meeting_type', 
+                message: 'Meeting type must be one of: ' + validTypes.join(', ') 
+            });
         }
     }
 
-    //   Delete meeting
-    //   DELETE /api/meetings/:id
-    async deleteMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const result = await meetingService.deleteMeeting(userId, meetingId);
-
-            return successResponse(res, 200, result.message);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
+    if (max_participants !== undefined) {
+        if (typeof max_participants !== 'number' || max_participants < 1) {
+            errors.push({ field: 'max_participants', message: 'Max participants must be at least 1' });
         }
     }
 
-    //   Get meeting statistics
-    //   GET /api/meetings/stats
-     
-    async getStats(req, res) {
-        try {
-            const userId = req.user.id;
-            const stats = await meetingService.getMeetingStats(userId);
-
-            return successResponse(res, 200, 'Statistics retrieved', stats);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
-        }
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation errors',
+            errors
+        });
     }
 
-    //   Get active meetings
-    //   GET /api/meetings/active
-    async getActiveMeetings(req, res) {
-        try {
-            const meetings = await meetingService.getActiveMeetings();
-
-            return successResponse(res, 200, 'Active meetings retrieved', meetings);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
-        }
-    }
-}
-
-export default new MeetingController();
+    next();
+};
