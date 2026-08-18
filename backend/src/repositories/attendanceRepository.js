@@ -1,15 +1,12 @@
 import { pool } from '../config/database.js';
-
 class AttendanceRepository {
-    /**
-     * Create attendance record when user joins
-     */
+    
+    //  Create attendance record when user joins
+     
     async create(meetingId, userId) {
         try {
-            // Check if already exists
             const existing = await this.findByMeetingAndUser(meetingId, userId);
             if (existing) {
-                // Update join time if already exists
                 await pool.execute(
                     `UPDATE attendance 
                     SET join_time = NOW(), leave_time = NULL, status = 'present'
@@ -32,9 +29,8 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Update attendance when user leaves
-     */
+    //   Update attendance when user leaves
+     
     async updateLeaveTime(meetingId, userId) {
         try {
             await pool.execute(
@@ -51,9 +47,8 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Find attendance by meeting and user
-     */
+    //  Find attendance by meeting and user
+     
     async findByMeetingAndUser(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
@@ -68,9 +63,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get all attendance for a meeting
-     */
+    //  Get all attendance for a meeting
     async findByMeeting(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -78,8 +71,7 @@ class AttendanceRepository {
                     a.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM attendance a
                 JOIN users u ON a.user_id = u.id
                 WHERE a.meeting_id = ?
@@ -93,9 +85,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get attendance with statistics
-     */
+    //  Get attendance with statistics
     async getAttendanceStats(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -119,9 +109,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Update attendance status
-     */
+    //  Update attendance status
     async updateStatus(meetingId, userId, status) {
         try {
             await pool.execute(
@@ -137,9 +125,8 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get user attendance history
-     */
+    //  Get user attendance history
+     
     async getUserAttendance(userId, limit = 50, offset = 0) {
         try {
             const [rows] = await pool.execute(
@@ -166,9 +153,8 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get attendance report for meeting (with user details)
-     */
+    //  Get attendance report for meeting
+     
     async getAttendanceReport(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -206,9 +192,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get meeting analytics data
-     */
+    //  Get meeting analytics data
     async getMeetingAnalytics(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -242,9 +226,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get platform-wide analytics
-     */
+    //  Get platform-wide analytics
     async getPlatformAnalytics(startDate = null, endDate = null) {
         try {
             let dateFilter = '';
@@ -280,9 +262,8 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get user-specific analytics
-     */
+    //   Get user-specific analytics
+    
     async getUserAnalytics(userId) {
         try {
             const [rows] = await pool.execute(
@@ -310,9 +291,7 @@ class AttendanceRepository {
         }
     }
 
-    /**
-     * Get meeting trends (daily/weekly/monthly)
-     */
+    //   Get meeting trends (daily/weekly/monthly)
     async getMeetingTrends(period = 'monthly', limit = 12) {
         try {
             let groupBy;

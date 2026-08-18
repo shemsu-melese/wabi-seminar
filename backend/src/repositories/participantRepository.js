@@ -1,9 +1,8 @@
 import { pool } from '../config/database.js';
-
 class ParticipantRepository {
-    /**
-     * Add participant to meeting
-     */
+    
+    //   Add participant to meeting
+     
     async addParticipant(meetingId, userId, role = 'participant') {
         try {
             const [result] = await pool.execute(
@@ -25,9 +24,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Get participant details
-     */
+    //   Get participant details
+     
     async getParticipant(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
@@ -35,8 +33,7 @@ class ParticipantRepository {
                     mp.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM meeting_participants mp
                 JOIN users u ON mp.user_id = u.id
                 WHERE mp.meeting_id = ? AND mp.user_id = ?`,
@@ -49,9 +46,7 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Get all participants for a meeting
-     */
+    //   Get all participants for a meeting
     async getMeetingParticipants(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -59,8 +54,7 @@ class ParticipantRepository {
                     mp.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM meeting_participants mp
                 JOIN users u ON mp.user_id = u.id
                 WHERE mp.meeting_id = ? AND mp.status != 'removed'
@@ -74,9 +68,7 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Get all meetings for a participant
-     */
+    //   Get all meetings for a participant
     async getUserMeetings(userId) {
         try {
             const [rows] = await pool.execute(
@@ -100,9 +92,7 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Update participant status
-     */
+    //   Update participant status
     async updateStatus(meetingId, userId, status) {
         try {
             await pool.execute(
@@ -120,9 +110,7 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Update participant role
-     */
+    //   Update participant role
     async updateRole(meetingId, userId, role) {
         try {
             await pool.execute(
@@ -138,9 +126,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Mute participant
-     */
+    //   Mute participant
+     
     async muteParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -156,9 +143,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Unmute participant
-     */
+    //   Unmute participant
+     
     async unmuteParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -174,9 +160,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Remove participant from meeting
-     */
+    //   Remove participant from meeting
+     
     async removeParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -191,9 +176,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Check if user is participant in meeting
-     */
+    //   Check if user is participant in meeting
+    
     async isParticipant(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
@@ -208,9 +192,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Check if user is host of meeting
-     */
+    //  Check if user is host of meeting
+     
     async isHost(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
@@ -225,9 +208,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Get participant count for meeting
-     */
+    //   Get participant count for meeting
+     
     async getParticipantCount(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -243,9 +225,7 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Get waiting room participants
-     */
+    //   Get waiting room participants
     async getWaitingParticipants(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -253,8 +233,7 @@ class ParticipantRepository {
                     mp.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM meeting_participants mp
                 JOIN users u ON mp.user_id = u.id
                 WHERE mp.meeting_id = ? AND mp.status = 'waiting'
@@ -268,9 +247,8 @@ class ParticipantRepository {
         }
     }
 
-    /**
-     * Admit participant from waiting room
-     */
+    //  Admit participant from waiting room
+     
     async admitParticipant(meetingId, userId) {
         try {
             await pool.execute(

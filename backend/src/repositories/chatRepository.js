@@ -1,9 +1,7 @@
 import { pool } from '../config/database.js';
-
 class ChatRepository {
-    /**
-     * Save a new chat message
-     */
+    //   Save a new chat message
+    
     async saveMessage(meetingId, userId, content, messageType = 'text', parentMessageId = null) {
         try {
             const [result] = await pool.execute(
@@ -20,9 +18,7 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Get message by ID
-     */
+    //   Get message by ID
     async getMessageById(id) {
         try {
             const [rows] = await pool.execute(
@@ -30,8 +26,7 @@ class ChatRepository {
                     cm.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM chat_messages cm
                 JOIN users u ON cm.user_id = u.id
                 WHERE cm.id = ? AND cm.deleted_at IS NULL`,
@@ -44,9 +39,8 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Get messages for a meeting
-     */
+    //   Get messages for a meeting 
+    
     async getMessages(meetingId, limit = 50, offset = 0) {
         try {
             const [rows] = await pool.execute(
@@ -54,8 +48,7 @@ class ChatRepository {
                     cm.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM chat_messages cm
                 JOIN users u ON cm.user_id = u.id
                 WHERE cm.meeting_id = ? AND cm.deleted_at IS NULL
@@ -70,9 +63,7 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Get message with replies
-     */
+    //   Get message with replies
     async getMessageWithReplies(messageId) {
         try {
             const message = await this.getMessageById(messageId);
@@ -83,8 +74,7 @@ class ChatRepository {
                     cm.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM chat_messages cm
                 JOIN users u ON cm.user_id = u.id
                 WHERE cm.parent_message_id = ? AND cm.deleted_at IS NULL
@@ -99,12 +89,9 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Delete message (soft delete)
-     */
+    //   Delete message
     async deleteMessage(messageId, userId) {
         try {
-            // Check if user is the author
             const [rows] = await pool.execute(
                 'SELECT user_id FROM chat_messages WHERE id = ?',
                 [messageId]
@@ -130,14 +117,9 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Pin message
-     */
+    //   Pin message
     async pinMessage(messageId, userId) {
         try {
-            // Check if user is host or admin
-            // This will be validated in service layer
-            
             await pool.execute(
                 'UPDATE chat_messages SET is_pinned = TRUE WHERE id = ?',
                 [messageId]
@@ -149,9 +131,8 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Unpin message
-     */
+    //   Unpin message
+     
     async unpinMessage(messageId) {
         try {
             await pool.execute(
@@ -165,9 +146,7 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Get pinned messages
-     */
+    //   Get pinned messages
     async getPinnedMessages(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -175,8 +154,7 @@ class ChatRepository {
                     cm.*,
                     u.first_name,
                     u.last_name,
-                    u.email,
-                    u.avatar_url
+                    u.email
                 FROM chat_messages cm
                 JOIN users u ON cm.user_id = u.id
                 WHERE cm.meeting_id = ? 
@@ -192,9 +170,8 @@ class ChatRepository {
         }
     }
 
-    /**
-     * Get message count for meeting
-     */
+    //  Get message count for meeting
+     
     async getMessageCount(meetingId) {
         try {
             const [rows] = await pool.execute(

@@ -1,9 +1,7 @@
 import { pool } from '../config/database.js';
-
 class ReactionRepository {
-    /**
-     * Add a reaction
-     */
+    //  Add a reaction
+     
     async addReaction(meetingId, userId, emoji, messageId = null) {
         try {
             // Check if reaction already exists
@@ -36,9 +34,8 @@ class ReactionRepository {
         }
     }
 
-    /**
-     * Get reaction by ID
-     */
+    //   Get reaction by ID
+     
     async getReactionById(id) {
         try {
             const [rows] = await pool.execute(
@@ -59,9 +56,7 @@ class ReactionRepository {
         }
     }
 
-    /**
-     * Get reactions for a meeting
-     */
+    //   Get reactions for a meeting
     async getMeetingReactions(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -83,9 +78,8 @@ class ReactionRepository {
         }
     }
 
-    /**
-     * Get reactions for a message
-     */
+    //   Get reactions for a message
+     
     async getMessageReactions(messageId) {
         try {
             const [rows] = await pool.execute(
@@ -107,9 +101,7 @@ class ReactionRepository {
         }
     }
 
-    /**
-     * Get reaction count by emoji
-     */
+    //   Get reaction count by emoji
     async getReactionCounts(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -128,9 +120,8 @@ class ReactionRepository {
         }
     }
 
-    /**
-     * Remove reaction
-     */
+    //   Remove reaction
+     
     async removeReaction(reactionId, userId) {
         try {
             const [rows] = await pool.execute(

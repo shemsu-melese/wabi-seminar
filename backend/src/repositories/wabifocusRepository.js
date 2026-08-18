@@ -1,9 +1,6 @@
 import { pool } from '../config/database.js';
-
 class WabiFocusRepository {
-    /**
-     * Create a WabiFocus item
-     */
+    //   Create a WabiFocus item
     async create(data) {
         try {
             const {
@@ -17,7 +14,6 @@ class WabiFocusRepository {
                 priority = 'medium'
             } = data;
 
-            // Get max order_index for this meeting and type
             const [orderResult] = await pool.execute(
                 'SELECT COALESCE(MAX(order_index), -1) + 1 as next_order FROM wabifocus_items WHERE meeting_id = ? AND type = ?',
                 [meeting_id, type]
@@ -38,9 +34,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Find WabiFocus item by ID
-     */
+    //   Find WabiFocus item by ID
+     
     async findById(id) {
         try {
             const [rows] = await pool.execute(
@@ -65,9 +60,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get all WabiFocus items for a meeting
-     */
+    //   Get all WabiFocus items for a meeting
+     
     async findByMeeting(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -95,9 +89,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get WabiFocus items by type for a meeting
-     */
+    // Get WabiFocus items by type for a meeting
+     
     async findByMeetingAndType(meetingId, type) {
         try {
             const [rows] = await pool.execute(
@@ -123,9 +116,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get incomplete action items for a meeting
-     */
+    //   Get incomplete action items for a meeting
+     
     async getActionItems(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -153,9 +145,7 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get completed action items for a meeting
-     */
+    //   Get completed action items for a meeting
     async getCompletedActionItems(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -183,9 +173,7 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get user's assigned action items
-     */
+    //   Get user's assigned action items
     async getAssignedActionItems(userId) {
         try {
             const [rows] = await pool.execute(
@@ -212,9 +200,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Update WabiFocus item
-     */
+    //   Update WabiFocus item
+     
     async update(id, data) {
         try {
             const updates = [];
@@ -256,9 +243,7 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Reorder items
-     */
+    //   Reorder items
     async reorder(meetingId, type, itemIds) {
         try {
             for (let i = 0; i < itemIds.length; i++) {
@@ -274,12 +259,10 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Delete WabiFocus item (soft delete)
-     */
+    //   Delete WabiFocus item
+     
     async delete(id, userId) {
         try {
-            // Check ownership
             const [rows] = await pool.execute(
                 'SELECT user_id FROM wabifocus_items WHERE id = ?',
                 [id]
@@ -304,9 +287,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get WabiFocus summary for a meeting
-     */
+    //  Get WabiFocus summary for a meeting
+     
     async getSummary(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -327,9 +309,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get meeting outcome (summary of goals, decisions, action items)
-     */
+    //  Get meeting outcome
+     
     async getMeetingOutcome(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -355,9 +336,8 @@ class WabiFocusRepository {
         }
     }
 
-    /**
-     * Get action items with deadline approaching
-     */
+    //   Get action items with deadline approaching
+     
     async getUpcomingActionItems(days = 7) {
         try {
             const [rows] = await pool.execute(
