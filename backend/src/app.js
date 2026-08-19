@@ -9,6 +9,7 @@ import errorMiddleware from './middleware/errorMiddleware.js';
 import notFoundMiddleware from './middleware/notFoundMiddleware.js';
 import rateLimitMiddleware from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
+import passwordResetRoutes from './routes/passwordResetRoutes.js';
 import { testConnection } from './config/database.js';
 import meetingRoutes from './routes/meetingRoutes.js';
 import webrtcRoutes from './routes/webrtcRoutes.js';
@@ -19,6 +20,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import reactionRoutes from './routes/reactionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import wabifocusRoutes from './routes/wabifocusRoutes.js';
+
 
 
 // ... rest of code ...
@@ -49,6 +51,7 @@ app.use(rateLimitMiddleware);
 await testConnection();
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordResetRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/webrtc', webrtcRoutes); 
 app.use('/api/participants', participantRoutes);
