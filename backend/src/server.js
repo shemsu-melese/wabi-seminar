@@ -13,9 +13,9 @@ setupSocketServer(httpServer);
 
 // Start server
 httpServer.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📡 Socket.IO attached`);
-    console.log(`🌍 Environment: ${config.nodeEnv}`);
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`📡Socket.IO attached`);
+    console.log(`Environment: ${config.nodeEnv}`);
 });
 
 // Graceful shutdown
@@ -28,10 +28,10 @@ const gracefulShutdown = async () => {
                 else resolve();
             });
         });
-        console.log('✅ HTTP server closed');
+        console.log('HTTP server closed');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error during shutdown:', error);
+        console.error('Error during shutdown:', error);
         process.exit(1);
     }
 };

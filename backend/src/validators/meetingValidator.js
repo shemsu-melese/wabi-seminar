@@ -1,8 +1,7 @@
 import { validateRequired } from '../utils/validators.js';
 
-/**
- * Validate meeting creation
- */
+//   Validate meeting creation
+ 
 export const validateCreateMeeting = (req, res, next) => {
     const { title, start_time, duration_minutes } = req.body;
     const errors = [];
