@@ -1,6 +1,5 @@
-/**
- * Real-time chat socket events
- */
+//  Real-time chat socket events
+ 
 export const chatSocketHandler = (socket, io) => {
     
     // Send chat message (real-time)

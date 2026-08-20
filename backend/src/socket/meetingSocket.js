@@ -1,7 +1,6 @@
-/**
- * Meeting-specific Socket Handler
- * Handles meeting-wide events like chat messages, notes, etc.
- */
+//  Meeting-specific Socket Handler
+// Handles meeting-wide events like chat messages
+
 export const meetingSocketHandler = (socket, io) => {
     
     // Send chat message

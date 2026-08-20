@@ -1,7 +1,6 @@
-/**
- * Participant State Management Handler
- * Handles participant status updates, media states, etc.
- */
+// Participant State Management Handler
+// Handles participant status updates, media states, etc.
+ 
 export const participantSocketHandler = (socket, io) => {
     
     // Update media state (camera/mic on/off)

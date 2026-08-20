@@ -1,7 +1,6 @@
-/**
- * WebRTC Signaling Handler
- * Handles SDP offers/answers and ICE candidates
- */
+//  WebRTC Signaling Handler
+// Handles SDP offers/answers and ICE candidates
+
 export const signalingSocketHandler = (socket, io) => {
     
     // WebRTC Offer
