@@ -12,103 +12,86 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
-// ============================================
 // MEETING CRUD OPERATIONS
-// ============================================
 
-/**
- * @route   POST /api/meetings
- * @desc    Create a new meeting
- * @access  Private
- */
+//  POST /api/meetings
+//     Create a new meeting
+//    Private
+ 
 router.post('/', validateCreateMeeting, meetingController.createMeeting);
 
-/**
- * @route   GET /api/meetings
- * @desc    Get user's meetings
- * @access  Private
- */
+//  GET /api/meetings
+//   Get user's meetings
+//    Private
+ 
 router.get('/', meetingController.getUserMeetings);
 
-/**
- * @route   GET /api/meetings/upcoming
- * @desc    Get upcoming meetings
- * @access  Private
- */
+//  GET /api/meetings/upcoming
+//  Get upcoming meetings
+//   Private
+
 router.get('/upcoming', meetingController.getUpcomingMeetings);
 
-/**
- * @route   GET /api/meetings/active
- * @desc    Get active meetings
- * @access  Private
- */
+//  GET /api/meetings/active
+//  Get active meetings
+//  Private
+ 
 router.get('/active', meetingController.getActiveMeetings);
 
-/**
- * @route   GET /api/meetings/stats
- * @desc    Get meeting statistics
- * @access  Private
- */
+// GET /api/meetings/stats
+//   Get meeting statistics
+//    Private
+ 
 router.get('/stats', meetingController.getStats);
 
-/**
- * @route   GET /api/meetings/code/:code
- * @desc    Get meeting by code
- * @access  Private
- */
+// GET /api/meetings/code/:code
+//    Get meeting by code
+//    Private
+ 
 router.get('/code/:code', meetingController.getMeetingByCode);
 
-/**
- * @route   GET /api/meetings/:id
- * @desc    Get meeting details
- * @access  Private
- */
+//   GET /api/meetings/:id
+//  Get meeting details
+//   Private
+
 router.get('/:id', meetingController.getMeeting);
 
-/**
- * @route   PUT /api/meetings/:id
- * @desc    Update meeting
- * @access  Private (Host only)
- */
+//  PUT /api/meetings/:id
+//  Update meeting
+//  Private (Host only)
+ 
 router.put('/:id', validateUpdateMeeting, meetingController.updateMeeting);
 
-/**
- * @route   DELETE /api/meetings/:id
- * @desc    Delete meeting
- * @access  Private (Host only)
- */
+//  DELETE /api/meetings/:id
+//   Delete meeting
+// Private (Host only)
+ 
 router.delete('/:id', meetingController.deleteMeeting);
 
-// ============================================
 // MEETING ACTIONS
-// ============================================
 
-/**
- * @route   POST /api/meetings/:id/join
- * @desc    Join a meeting
- * @access  Private
- */
+//  POST /api/meetings/:id/join
+//  Join a meeting
+// Private
+ 
 router.post('/:id/join', validateJoinMeeting, meetingController.joinMeeting);
 
-/**
- * @route   POST /api/meetings/:id/leave
- * @desc    Leave a meeting
- * @access  Private
- */
+//  POST /api/meetings/:id/leave
+//   Leave a meeting
+//  Private
+
 router.post('/:id/leave', meetingController.leaveMeeting);
 
-/**
- * @route   POST /api/meetings/:id/start
- * @desc    Start a meeting
- * @access  Private (Host only)
- */
+//  POST /api/meetings/:id/start
+//  Start a meeting
+//  Private (Host only)
+
 router.post('/:id/start', meetingController.startMeeting);
 
-/**
- * @route   POST /api/meetings/:id/end
- * @desc    End a meeting
- * @access  Private (Host only)
- */
+//  POST /api/meetings/:id/end
+//  End a meeting
+//  Private (Host only)
+ 
 router.post('/:id/end', meetingController.endMeeting);
 
 export default router;

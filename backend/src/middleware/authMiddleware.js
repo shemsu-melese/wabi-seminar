@@ -3,9 +3,8 @@ import userRepository from '../repositories/userRepository.js';
 import config from '../config/environment.js';
 import { errorResponse } from '../utils/response.js';
 
-/**
- * Authenticate user via JWT token
- */
+//   Authenticate user via JWT token
+
 export const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -52,9 +51,8 @@ export const authenticate = async (req, res, next) => {
     }
 };
 
-/**
- * Authorize user by role
- */
+//   Authorize user by role
+
 export const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -69,9 +67,8 @@ export const authorize = (...roles) => {
     };
 };
 
-/**
- * Optional authentication (doesn't require token)
- */
+//   Optional authentication (doesn't require token)
+
 export const optionalAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;

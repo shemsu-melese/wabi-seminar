@@ -11,15 +11,12 @@ import {
 
 const router = express.Router();
 
-// ============================================
 // PUBLIC ROUTES (No authentication required)
-// ============================================
 
-/**
- * @route   POST /api/auth/register
- * @desc    Register a new user
- * @access  Public
- */
+
+//   POST /api/auth/register
+//     Register a new user
+ 
 router.post('/register', validateRegister, authController.register);
 
 /**
