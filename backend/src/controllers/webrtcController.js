@@ -1,10 +1,10 @@
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class WebRTCController {
-    /**
-     * Get ICE servers configuration
-     * GET /api/webrtc/ice-servers
-     */
+    
+    //  Get ICE servers configuration
+    //   GET /api/webrtc/ice-servers
+
     async getIceServers(req, res) {
         try {
             // In production, you'd get TURN credentials from a service
@@ -41,10 +41,10 @@ class WebRTCController {
         }
     }
 
-    /**
-     * Get TURN server credentials (for production)
-     * POST /api/webrtc/turn-credentials
-     */
+
+    //  Get TURN server credentials (for production)
+    //  POST /api/webrtc/turn-credentials
+  
     async getTurnCredentials(req, res) {
         try {
             // This would call a TURN service API in production
@@ -63,10 +63,9 @@ class WebRTCController {
         }
     }
 
-    /**
-     * Generate a unique room ID
-     * GET /api/webrtc/room-id
-     */
+    //   Generate a unique room ID
+    //   GET /api/webrtc/room-id
+    
     async generateRoomId(req, res) {
         try {
             const roomId = 'room_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);

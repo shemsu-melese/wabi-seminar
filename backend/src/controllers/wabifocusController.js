@@ -2,10 +2,10 @@ import wabifocusService from '../services/wabifocusService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class WabiFocusController {
-    /**
-     * Create WabiFocus item
-     * POST /api/wabifocus/:meetingId
-     */
+    
+    //  Create WabiFocus item
+    //  POST /api/wabifocus/:meetingId
+     
     async createItem(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -31,10 +31,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get meeting items
-     * GET /api/wabifocus/:meetingId
-     */
+    //   Get meeting items
+    //   GET /api/wabifocus/:meetingId
+     
     async getMeetingItems(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -47,10 +46,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get items by type
-     * GET /api/wabifocus/:meetingId/type/:type
-     */
+    //   Get items by type
+    //   GET /api/wabifocus/:meetingId/type/:type
+     
     async getItemsByType(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -64,10 +62,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get action items for meeting
-     * GET /api/wabifocus/:meetingId/actions
-     */
+    //   Get action items for meeting
+    //   GET /api/wabifocus/:meetingId/actions
+     
     async getActionItems(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -80,10 +77,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get my assigned action items
-     * GET /api/wabifocus/my-actions
-     */
+    //  Get my assigned action items
+    //  GET /api/wabifocus/my-actions
+     
     async getMyActionItems(req, res) {
         try {
             const userId = req.user.id;
@@ -95,10 +91,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get upcoming action items
-     * GET /api/wabifocus/upcoming-actions
-     */
+    //   Get upcoming action items
+    //   GET /api/wabifocus/upcoming-actions
+     
     async getUpcomingActionItems(req, res) {
         try {
             const userId = req.user.id;
@@ -111,10 +106,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Update item
-     * PUT /api/wabifocus/:itemId
-     */
+    //   Update item
+    //  PUT /api/wabifocus/:itemId
+     
     async updateItem(req, res) {
         try {
             const itemId = parseInt(req.params.itemId);
@@ -136,10 +130,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Complete action item
-     * POST /api/wabifocus/:itemId/complete
-     */
+    //   Complete action item
+    //  POST /api/wabifocus/:itemId/complete
+    
     async completeActionItem(req, res) {
         try {
             const itemId = parseInt(req.params.itemId);
@@ -152,10 +145,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Reorder items
-     * PUT /api/wabifocus/:meetingId/reorder
-     */
+    //   Reorder items
+    //   PUT /api/wabifocus/:meetingId/reorder
+     
     async reorderItems(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -173,10 +165,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Delete item
-     * DELETE /api/wabifocus/:itemId
-     */
+    //   Delete item
+    //  DELETE /api/wabifocus/:itemId
+     
     async deleteItem(req, res) {
         try {
             const itemId = parseInt(req.params.itemId);
@@ -189,10 +180,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get WabiFocus summary
-     * GET /api/wabifocus/:meetingId/summary
-     */
+    //   Get WabiFocus summary
+    //  GET /api/wabifocus/:meetingId/summary
+     
     async getSummary(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -205,10 +195,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get meeting outcome
-     * GET /api/wabifocus/:meetingId/outcome
-     */
+    //   Get meeting outcome
+    //   GET /api/wabifocus/:meetingId/outcome
+     
     async getMeetingOutcome(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -221,10 +210,9 @@ class WabiFocusController {
         }
     }
 
-    /**
-     * Get complete meeting summary
-     * GET /api/wabifocus/:meetingId/summary/full
-     */
+    //   Get complete meeting summary
+    //   GET /api/wabifocus/:meetingId/summary/full
+     
     async getFullSummary(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);

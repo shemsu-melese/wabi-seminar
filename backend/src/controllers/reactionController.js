@@ -2,10 +2,10 @@ import reactionService from '../services/reactionService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class ReactionController {
-    /**
-     * Toggle reaction
-     * POST /api/reactions/:meetingId
-     */
+    
+    //   Toggle reaction
+    //   POST /api/reactions/:meetingId
+     
     async toggleReaction(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -30,10 +30,9 @@ class ReactionController {
         }
     }
 
-    /**
-     * Get meeting reactions
-     * GET /api/reactions/:meetingId
-     */
+    //   Get meeting reactions
+    //   GET /api/reactions/:meetingId
+     
     async getMeetingReactions(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -47,10 +46,9 @@ class ReactionController {
         }
     }
 
-    /**
-     * Get reaction counts
-     * GET /api/reactions/:meetingId/counts
-     */
+    //  Get reaction counts
+    //   GET /api/reactions/:meetingId/counts
+     
     async getReactionCounts(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -64,10 +62,9 @@ class ReactionController {
         }
     }
 
-    /**
-     * Remove reaction
-     * DELETE /api/reactions/:reactionId
-     */
+    //   Remove reaction
+    //   DELETE /api/reactions/:reactionId
+     
     async removeReaction(req, res) {
         try {
             const reactionId = parseInt(req.params.reactionId);

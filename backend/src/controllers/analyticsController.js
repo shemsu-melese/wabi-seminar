@@ -2,10 +2,10 @@ import analyticsService from '../services/analyticsService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class AnalyticsController {
-    /**
-     * Get meeting analytics
-     * GET /api/analytics/meeting/:meetingId
-     */
+
+    //  Get meeting analytics
+    //   GET /api/analytics/meeting/:meetingId
+     
     async getMeetingAnalytics(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -18,10 +18,9 @@ class AnalyticsController {
         }
     }
 
-    /**
-     * Get user analytics
-     * GET /api/analytics/user
-     */
+    //   Get user analytics
+    //   GET /api/analytics/user
+     
     async getUserAnalytics(req, res) {
         try {
             const userId = req.user.id;
@@ -33,10 +32,9 @@ class AnalyticsController {
         }
     }
 
-    /**
-     * Get platform analytics (admin only)
-     * GET /api/analytics/platform
-     */
+    //   Get platform analytics (admin only)
+    //   GET /api/analytics/platform
+     
     async getPlatformAnalytics(req, res) {
         try {
             // Check if user is admin
@@ -52,10 +50,9 @@ class AnalyticsController {
         }
     }
 
-    /**
-     * Get meeting trends
-     * GET /api/analytics/trends
-     */
+    //   Get meeting trends
+    //   GET /api/analytics/trends
+     
     async getTrends(req, res) {
         try {
             const userId = req.user.id;
@@ -72,10 +69,10 @@ class AnalyticsController {
         }
     }
 
-    /**
-     * Get meeting statistics
-     * GET /api/analytics/stats
-     */
+    
+    //  Get meeting statistics
+    //   GET /api/analytics/stats
+     
     async getStats(req, res) {
         try {
             const userId = req.user.id;

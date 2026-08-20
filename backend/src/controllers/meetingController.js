@@ -2,10 +2,10 @@ import meetingService from '../services/meetingService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class MeetingController {
-    /**
-     * Create a new meeting
-     * POST /api/meetings
-     */
+    
+    //   Create a new meeting
+    //   POST /api/meetings
+     
     async createMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -19,10 +19,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get meeting details
-     * GET /api/meetings/:id
-     */
+    //   Get meeting details
+    //   GET /api/meetings/:id
+     
     async getMeeting(req, res) {
         try {
             const meetingId = parseInt(req.params.id);
@@ -36,10 +35,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get meeting by code
-     * GET /api/meetings/code/:code
-     */
+    //   Get meeting by code
+    //   GET /api/meetings/code/:code
+     
     async getMeetingByCode(req, res) {
         try {
             const { code } = req.params;
@@ -53,10 +51,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Join a meeting
-     * POST /api/meetings/:id/join
-     */
+    //   Join a meeting
+    //   POST /api/meetings/:id/join
+     
     async joinMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -71,10 +68,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Leave a meeting
-     * POST /api/meetings/:id/leave
-     */
+    //   Leave a meeting
+    //   POST /api/meetings/:id/leave
+     
     async leaveMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -88,10 +84,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Start a meeting
-     * POST /api/meetings/:id/start
-     */
+    //  Start a meeting
+    //  POST /api/meetings/:id/start
+     
     async startMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -105,10 +100,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * End a meeting
-     * POST /api/meetings/:id/end
-     */
+    //   End a meeting
+    //   POST /api/meetings/:id/end
+
     async endMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -122,10 +116,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get user's meetings
-     * GET /api/meetings
-     */
+    //  Get user's meetings
+    //  GET /api/meetings
+     
     async getUserMeetings(req, res) {
         try {
             const userId = req.user.id;
@@ -141,10 +134,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get upcoming meetings
-     * GET /api/meetings/upcoming
-     */
+    //   Get upcoming meetings
+    //   GET /api/meetings/upcoming
+     
     async getUpcomingMeetings(req, res) {
         try {
             const userId = req.user.id;
@@ -157,10 +149,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Update meeting
-     * PUT /api/meetings/:id
-     */
+    //   Update meeting
+    //   PUT /api/meetings/:id
+     
     async updateMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -175,10 +166,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Delete meeting
-     * DELETE /api/meetings/:id
-     */
+    //  Delete meeting
+    //  DELETE /api/meetings/:id
+     
     async deleteMeeting(req, res) {
         try {
             const userId = req.user.id;
@@ -192,10 +182,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get meeting statistics
-     * GET /api/meetings/stats
-     */
+    //   Get meeting statistics
+    //   GET /api/meetings/stats
+     
     async getStats(req, res) {
         try {
             const userId = req.user.id;
@@ -207,10 +196,9 @@ class MeetingController {
         }
     }
 
-    /**
-     * Get active meetings
-     * GET /api/meetings/active
-     */
+    //   Get active meetings
+    //   GET /api/meetings/active
+     
     async getActiveMeetings(req, res) {
         try {
             const meetings = await meetingService.getActiveMeetings();

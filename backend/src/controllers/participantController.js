@@ -2,10 +2,10 @@ import participantService from '../services/participantService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class ParticipantController {
-    /**
-     * Get meeting participants
-     * GET /api/participants/:meetingId
-     */
+    
+    //   Get meeting participants
+    //  GET /api/participants/:meetingId
+     
     async getMeetingParticipants(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -26,10 +26,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Get waiting room participants
-     * GET /api/participants/:meetingId/waiting
-     */
+    //  Get waiting room participants
+    //  GET /api/participants/:meetingId/waiting
+     
     async getWaitingParticipants(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -42,10 +41,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Admit participant from waiting room
-     * POST /api/participants/:meetingId/admit/:userId
-     */
+    //   Admit participant from waiting room
+    //   POST /api/participants/:meetingId/admit/:userId
+    
     async admitParticipant(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -59,10 +57,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Admit all waiting participants
-     * POST /api/participants/:meetingId/admit-all
-     */
+    //  Admit all waiting participants
+    //  POST /api/participants/:meetingId/admit-all
+    
     async admitAll(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -75,10 +72,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Remove participant
-     * DELETE /api/participants/:meetingId/:userId
-     */
+    //  Remove participant
+    //  DELETE /api/participants/:meetingId/:userId
+     
     async removeParticipant(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -92,10 +88,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Mute participant
-     * POST /api/participants/:meetingId/mute/:userId
-     */
+    //   Mute participant
+    //  POST /api/participants/:meetingId/mute/:userId
+     
     async muteParticipant(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -109,10 +104,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Unmute participant
-     * POST /api/participants/:meetingId/unmute/:userId
-     */
+    //   Unmute participant
+    //   POST /api/participants/:meetingId/unmute/:userId
+    
     async unmuteParticipant(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -126,10 +120,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Mute all participants
-     * POST /api/participants/:meetingId/mute-all
-     */
+    //   Mute all participants
+    //   POST /api/participants/:meetingId/mute-all
+     
     async muteAll(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -142,10 +135,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Update participant role
-     * PUT /api/participants/:meetingId/:userId/role
-     */
+    //   Update participant role
+    //   PUT /api/participants/:meetingId/:userId/role
+     
     async updateRole(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -160,9 +152,9 @@ class ParticipantController {
         }
     }
 
-    /**
-     * Helper: Check if user is meeting creator
-     */
+    
+    //   Helper: Check if user is meeting creator
+     
     async isMeetingCreator(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         return meeting && meeting.created_by === userId;

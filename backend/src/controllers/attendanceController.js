@@ -2,10 +2,10 @@ import attendanceService from '../services/attendanceService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class AttendanceController {
-    /**
-     * Record user joining meeting
-     * POST /api/attendance/:meetingId/join
-     */
+
+    //   Record user joining meeting
+    //   POST /api/attendance/:meetingId/join
+     
     async recordJoin(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -18,10 +18,9 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Record user leaving meeting
-     * POST /api/attendance/:meetingId/leave
-     */
+    //   Record user leaving meeting
+    //   POST /api/attendance/:meetingId/leave
+     
     async recordLeave(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -34,10 +33,9 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Get meeting attendance
-     * GET /api/attendance/:meetingId
-     */
+    //   Get meeting attendance
+    //   GET /api/attendance/:meetingId
+     
     async getMeetingAttendance(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -50,10 +48,9 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Get attendance report
-     * GET /api/attendance/:meetingId/report
-     */
+    //   Get attendance report
+    //   GET /api/attendance/:meetingId/report
+     
     async getAttendanceReport(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -66,10 +63,10 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Export attendance report
-     * GET /api/attendance/:meetingId/export
-     */
+    
+    //   Export attendance report
+    //  GET /api/attendance/:meetingId/export
+     
     async exportReport(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -93,10 +90,9 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Get user attendance history
-     * GET /api/attendance/user/history
-     */
+    //   Get user attendance history
+    //  GET /api/attendance/user/history
+     
     async getUserAttendance(req, res) {
         try {
             const userId = req.user.id;
@@ -110,10 +106,9 @@ class AttendanceController {
         }
     }
 
-    /**
-     * Update attendance status
-     * PUT /api/attendance/:meetingId/:userId/status
-     */
+    //   Update attendance status
+    //   PUT /api/attendance/:meetingId/:userId/status
+     
     async updateStatus(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);

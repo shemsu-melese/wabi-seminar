@@ -3,10 +3,10 @@ import participantService from '../services/participantService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class MeetingControlsController {
-    /**
-     * Lock meeting
-     * POST /api/meetings/:meetingId/lock
-     */
+    
+    //   Lock meeting
+    //   POST /api/meetings/:meetingId/lock
+     
     async lockMeeting(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -24,10 +24,9 @@ class MeetingControlsController {
         }
     }
 
-    /**
-     * Unlock meeting
-     * POST /api/meetings/:meetingId/unlock
-     */
+    //   Unlock meeting
+    //   POST /api/meetings/:meetingId/unlock
+     
     async unlockMeeting(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -45,10 +44,9 @@ class MeetingControlsController {
         }
     }
 
-    /**
-     * Enable waiting room
-     * POST /api/meetings/:meetingId/waiting-room/enable
-     */
+    //  Enable waiting room
+    //  POST /api/meetings/:meetingId/waiting-room/enable
+     
     async enableWaitingRoom(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -66,10 +64,9 @@ class MeetingControlsController {
         }
     }
 
-    /**
-     * Disable waiting room
-     * POST /api/meetings/:meetingId/waiting-room/disable
-     */
+    //  Disable waiting room
+    //  POST /api/meetings/:meetingId/waiting-room/disable
+    
     async disableWaitingRoom(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -87,10 +84,9 @@ class MeetingControlsController {
         }
     }
 
-    /**
-     * Toggle participant camera
-     * POST /api/meetings/:meetingId/camera/:userId
-     */
+    //   Toggle participant camera
+    //   POST /api/meetings/:meetingId/camera/:userId
+    
     async toggleCamera(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -106,10 +102,9 @@ class MeetingControlsController {
         }
     }
 
-    /**
-     * Get meeting status
-     * GET /api/meetings/:meetingId/status
-     */
+    //   Get meeting status
+    //   GET /api/meetings/:meetingId/status
+     
     async getMeetingStatus(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);

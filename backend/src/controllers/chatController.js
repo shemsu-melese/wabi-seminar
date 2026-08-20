@@ -2,10 +2,10 @@ import chatService from '../services/chatService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 class ChatController {
-    /**
-     * Send message
-     * POST /api/chat/:meetingId
-     */
+
+    //   Send message
+    //   POST /api/chat/:meetingId
+     
     async sendMessage(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -30,10 +30,9 @@ class ChatController {
         }
     }
 
-    /**
-     * Get meeting messages
-     * GET /api/chat/:meetingId
-     */
+    //   Get meeting messages
+    //   GET /api/chat/:meetingId
+     
     async getMessages(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
@@ -49,10 +48,9 @@ class ChatController {
         }
     }
 
-    /**
-     * Delete message
-     * DELETE /api/chat/:messageId
-     */
+    //  Delete message
+    //  DELETE /api/chat/:messageId
+     
     async deleteMessage(req, res) {
         try {
             const messageId = parseInt(req.params.messageId);
@@ -66,10 +64,9 @@ class ChatController {
         }
     }
 
-    /**
-     * Pin message
-     * POST /api/chat/:messageId/pin
-     */
+    //   Pin message
+    //   POST /api/chat/:messageId/pin
+     
     async pinMessage(req, res) {
         try {
             const messageId = parseInt(req.params.messageId);
@@ -83,10 +80,9 @@ class ChatController {
         }
     }
 
-    /**
-     * Unpin message
-     * POST /api/chat/:messageId/unpin
-     */
+    //  Unpin message
+    //   POST /api/chat/:messageId/unpin
+     
     async unpinMessage(req, res) {
         try {
             const messageId = parseInt(req.params.messageId);
@@ -99,10 +95,9 @@ class ChatController {
         }
     }
 
-    /**
-     * Get pinned messages
-     * GET /api/chat/:meetingId/pinned
-     */
+    //   Get pinned messages
+    //   GET /api/chat/:meetingId/pinned
+     
     async getPinnedMessages(req, res) {
         try {
             const meetingId = parseInt(req.params.meetingId);
