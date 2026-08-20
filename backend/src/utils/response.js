@@ -1,6 +1,5 @@
-/**
- * Standard success response
- */
+//  Standard success response
+ 
 export const successResponse = (res, statusCode = 200, message = 'Success', data = null) => {
     const response = {
         success: true,
@@ -14,9 +13,8 @@ export const successResponse = (res, statusCode = 200, message = 'Success', data
     return res.status(statusCode).json(response);
 };
 
-/**
- * Standard error response
- */
+// Standard error response
+
 export const errorResponse = (res, statusCode = 500, message = 'Error occurred', errors = null) => {
     const response = {
         success: false,
@@ -30,9 +28,8 @@ export const errorResponse = (res, statusCode = 500, message = 'Error occurred',
     return res.status(statusCode).json(response);
 };
 
-/**
- * Validation error response
- */
+//  Validation error response
+ 
 export const validationErrorResponse = (res, errors) => {
     return res.status(400).json({
         success: false,

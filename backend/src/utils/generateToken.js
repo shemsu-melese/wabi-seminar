@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/environment.js';
 
-/**
- * Generate JWT access token
- */
+//  Generate JWT access token
+ 
 export const generateToken = (userId) => {
     return jwt.sign(
         { userId },
@@ -12,9 +11,8 @@ export const generateToken = (userId) => {
     );
 };
 
-/**
- * Generate JWT refresh token
- */
+//  Generate JWT refresh token
+ 
 export const generateRefreshToken = (userId) => {
     return jwt.sign(
         { userId },
@@ -23,9 +21,8 @@ export const generateRefreshToken = (userId) => {
     );
 };
 
-/**
- * Verify JWT token
- */
+//   Verify JWT token
+
 export const verifyToken = (token) => {
     try {
         return jwt.verify(token, config.jwt.secret);
@@ -34,9 +31,8 @@ export const verifyToken = (token) => {
     }
 };
 
-/**
- * Decode JWT token without verification
- */
+//   Decode JWT token without verification
+ 
 export const decodeToken = (token) => {
     try {
         return jwt.decode(token);
