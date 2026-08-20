@@ -3,9 +3,9 @@ import participantService from './participantService.js';
 import meetingRepository from '../repositories/meetingRepository.js';
 
 class ChatService {
-    /**
-     * Send a message
-     */
+    
+    //   Send a message
+     
     async sendMessage(meetingId, userId, content, messageType = 'text', parentMessageId = null) {
         // Check if user is participant
         const isParticipant = await participantService.isParticipant(meetingId, userId);
@@ -25,9 +25,8 @@ class ChatService {
         return await chatRepository.saveMessage(meetingId, userId, content, messageType, parentMessageId);
     }
 
-    /**
-     * Get meeting messages
-     */
+    //   Get meeting messages
+     
     async getMeetingMessages(meetingId, userId, limit = 50, page = 1) {
         // Check if user is participant
         const isParticipant = await participantService.isParticipant(meetingId, userId);
@@ -50,16 +49,15 @@ class ChatService {
         };
     }
 
-    /**
-     * Delete message
-     */
+    //   Delete message
+     
     async deleteMessage(messageId, userId) {
         return await chatRepository.deleteMessage(messageId, userId);
     }
 
-    /**
-     * Pin message (only host or admin)
-     */
+
+    //   Pin message (only host or admin)
+     
     async pinMessage(messageId, userId) {
         // Get message to find meeting
         const message = await chatRepository.getMessageById(messageId);
@@ -79,16 +77,14 @@ class ChatService {
         return await chatRepository.pinMessage(messageId, userId);
     }
 
-    /**
-     * Unpin message
-     */
+    //   Unpin message
+     
     async unpinMessage(messageId) {
         return await chatRepository.unpinMessage(messageId);
     }
 
-    /**
-     * Get pinned messages
-     */
+    //   Get pinned messages
+     
     async getPinnedMessages(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {

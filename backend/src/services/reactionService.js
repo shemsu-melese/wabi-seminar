@@ -3,9 +3,9 @@ import participantService from './participantService.js';
 import meetingRepository from '../repositories/meetingRepository.js';
 
 class ReactionService {
-    /**
-     * Add or remove reaction
-     */
+    
+    //   Add or remove reaction
+    
     async toggleReaction(meetingId, userId, emoji, messageId = null) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -30,9 +30,8 @@ class ReactionService {
         return await reactionRepository.addReaction(meetingId, userId, emoji, messageId);
     }
 
-    /**
-     * Get meeting reactions
-     */
+    //   Get meeting reactions
+     
     async getMeetingReactions(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -42,16 +41,14 @@ class ReactionService {
         return await reactionRepository.getMeetingReactions(meetingId);
     }
 
-    /**
-     * Get message reactions
-     */
+    //  Get message reactions
+    
     async getMessageReactions(messageId) {
         return await reactionRepository.getMessageReactions(messageId);
     }
 
-    /**
-     * Get reaction counts
-     */
+    //   Get reaction counts
+     
     async getReactionCounts(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -61,9 +58,8 @@ class ReactionService {
         return await reactionRepository.getReactionCounts(meetingId);
     }
 
-    /**
-     * Remove reaction
-     */
+    //  Remove reaction
+     
     async removeReaction(reactionId, userId) {
         return await reactionRepository.removeReaction(reactionId, userId);
     }

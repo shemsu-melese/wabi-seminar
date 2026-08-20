@@ -3,9 +3,9 @@ import meetingRepository from '../repositories/meetingRepository.js';
 import participantRepository from '../repositories/participantRepository.js';
 
 class AnalyticsService {
-    /**
-     * Get meeting analytics
-     */
+   
+    //   Get meeting analytics
+     
     async getMeetingAnalytics(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -69,9 +69,8 @@ class AnalyticsService {
         };
     }
 
-    /**
-     * Get user analytics
-     */
+    //   Get user analytics
+     
     async getUserAnalytics(userId) {
         const analytics = await attendanceRepository.getUserAnalytics(userId);
         const recentMeetings = await meetingRepository.findByUser(userId, null, 5, 0);
@@ -98,9 +97,8 @@ class AnalyticsService {
         };
     }
 
-    /**
-     * Get platform analytics (admin only)
-     */
+    //  Get platform analytics (admin only)
+     
     async getPlatformAnalytics(startDate = null, endDate = null) {
         const stats = await attendanceRepository.getPlatformAnalytics(startDate, endDate);
         const trends = await attendanceRepository.getMeetingTrends('monthly', 6);
@@ -124,9 +122,8 @@ class AnalyticsService {
         };
     }
 
-    /**
-     * Export meeting report (CSV format)
-     */
+    //   Export meeting report (CSV format)
+     
     async exportMeetingReport(meetingId, userId, format = 'csv') {
         const reportData = await attendanceRepository.getAttendanceReport(meetingId);
         
@@ -138,9 +135,8 @@ class AnalyticsService {
         return reportData;
     }
 
-    /**
-     * Generate CSV from report data
-     */
+//  Generate CSV from report data
+     
     generateCSV(data) {
         if (!data || data.length === 0) {
             return 'No data available';

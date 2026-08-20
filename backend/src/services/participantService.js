@@ -3,9 +3,9 @@ import meetingRepository from '../repositories/meetingRepository.js';
 import attendanceService from './attendanceService.js';
 
 class ParticipantService {
-    /**
-     * Add participant to meeting
-     */
+    
+    //   Add participant to meeting
+     
     async addParticipant(meetingId, userId, role = 'participant') {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -26,9 +26,8 @@ class ParticipantService {
         return participant;
     }
 
-    /**
-     * Remove participant from meeting
-     */
+    //   Remove participant from meeting
+     
     async removeParticipant(meetingId, userId, hostId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -54,9 +53,8 @@ class ParticipantService {
         return { message: 'Participant removed successfully' };
     }
 
-    /**
-     * Mute participant
-     */
+    //   Mute participant
+    
     async muteParticipant(meetingId, userId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -70,9 +68,8 @@ class ParticipantService {
         return await participantRepository.muteParticipant(meetingId, userId);
     }
 
-    /**
-     * Unmute participant
-     */
+    //   Unmute participant
+     
     async unmuteParticipant(meetingId, userId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -82,9 +79,8 @@ class ParticipantService {
         return await participantRepository.unmuteParticipant(meetingId, userId);
     }
 
-    /**
-     * Mute all participants
-     */
+    //   Mute all participants
+     
     async muteAll(meetingId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -104,9 +100,8 @@ class ParticipantService {
         return results;
     }
 
-    /**
-     * Get meeting participants with status
-     */
+    //   Get meeting participants with status
+     
     async getMeetingParticipants(meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -123,9 +118,8 @@ class ParticipantService {
         };
     }
 
-    /**
-     * Get waiting room participants
-     */
+    //   Get waiting room participants
+     
     async getWaitingParticipants(meetingId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -135,9 +129,8 @@ class ParticipantService {
         return await participantRepository.getWaitingParticipants(meetingId);
     }
 
-    /**
-     * Admit participant from waiting room
-     */
+    //  Admit participant from waiting room
+    
     async admitParticipant(meetingId, userId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -150,9 +143,8 @@ class ParticipantService {
         return participant;
     }
 
-    /**
-     * Admit all waiting participants
-     */
+    //   Admit all waiting participants
+     
     async admitAll(meetingId, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -171,9 +163,8 @@ class ParticipantService {
         return results;
     }
 
-    /**
-     * Update participant role
-     */
+    //   Update participant role
+     
     async updateRole(meetingId, userId, role, hostId) {
         const isHost = await participantRepository.isHost(meetingId, hostId);
         if (!isHost) {
@@ -188,23 +179,20 @@ class ParticipantService {
         return await participantRepository.updateRole(meetingId, userId, role);
     }
 
-    /**
-     * Get participant count
-     */
+    //   Get participant count
+     
     async getParticipantCount(meetingId) {
         return await participantRepository.getParticipantCount(meetingId);
     }
 
-    /**
-     * Check if user is participant
-     */
+//  Check if user is participant
+    
     async isParticipant(meetingId, userId) {
         return await participantRepository.isParticipant(meetingId, userId);
     }
 
-    /**
-     * Check if user is host
-     */
+    //  Check if user is host
+     
     async isHost(meetingId, userId) {
         return await participantRepository.isHost(meetingId, userId);
     }

@@ -3,9 +3,9 @@ import participantService from './participantService.js';
 import meetingRepository from '../repositories/meetingRepository.js';
 
 class WabiFocusService {
-    /**
-     * Create a WabiFocus item
-     */
+    
+    //  Create a WabiFocus item
+     
     async createItem(meetingId, userId, data) {
         // Check if user is participant
         const isParticipant = await participantService.isParticipant(meetingId, userId);
@@ -49,9 +49,8 @@ class WabiFocusService {
         });
     }
 
-    /**
-     * Get all WabiFocus items for a meeting
-     */
+    //   Get all WabiFocus items for a meeting
+     
     async getMeetingItems(meetingId, userId) {
         // Check if user has access
         const isParticipant = await participantService.isParticipant(meetingId, userId);
@@ -63,9 +62,8 @@ class WabiFocusService {
         return await wabifocusRepository.findByMeeting(meetingId);
     }
 
-    /**
-     * Get items by type for a meeting
-     */
+    //   Get items by type for a meeting
+     
     async getItemsByType(meetingId, userId, type) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -80,9 +78,8 @@ class WabiFocusService {
         return await wabifocusRepository.findByMeetingAndType(meetingId, type);
     }
 
-    /**
-     * Get action items for a meeting
-     */
+    //  Get action items for a meeting
+     
     async getActionItems(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -92,16 +89,14 @@ class WabiFocusService {
         return await wabifocusRepository.getActionItems(meetingId);
     }
 
-    /**
-     * Get user's assigned action items
-     */
+    //  Get user's assigned action items
+     
     async getMyActionItems(userId) {
         return await wabifocusRepository.getAssignedActionItems(userId);
     }
 
-    /**
-     * Update WabiFocus item
-     */
+      Update WabiFocus item
+    
     async updateItem(itemId, userId, data) {
         const item = await wabifocusRepository.findById(itemId);
         if (!item) {
@@ -134,9 +129,8 @@ class WabiFocusService {
         return await wabifocusRepository.update(itemId, data);
     }
 
-    /**
-     * Complete an action item
-     */
+    //   Complete an action item
+   
     async completeActionItem(itemId, userId) {
         const item = await wabifocusRepository.findById(itemId);
         if (!item) {
@@ -156,9 +150,8 @@ class WabiFocusService {
         return await wabifocusRepository.update(itemId, { is_completed: true });
     }
 
-    /**
-     * Reorder items
-     */
+    //   Reorder items
+     
     async reorderItems(meetingId, userId, type, itemIds) {
         const isHost = await participantService.isHost(meetingId, userId);
         if (!isHost) {
@@ -176,16 +169,14 @@ class WabiFocusService {
         return await wabifocusRepository.reorder(meetingId, type, itemIds);
     }
 
-    /**
-     * Delete WabiFocus item
-     */
+    //   Delete WabiFocus item
+     
     async deleteItem(itemId, userId) {
         return await wabifocusRepository.delete(itemId, userId);
     }
 
-    /**
-     * Get WabiFocus summary
-     */
+    //   Get WabiFocus summary
+    
     async getSummary(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -195,9 +186,8 @@ class WabiFocusService {
         return await wabifocusRepository.getSummary(meetingId);
     }
 
-    /**
-     * Get meeting outcome
-     */
+    //   Get meeting outcome
+     
     async getMeetingOutcome(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {
@@ -207,16 +197,14 @@ class WabiFocusService {
         return await wabifocusRepository.getMeetingOutcome(meetingId);
     }
 
-    /**
-     * Get upcoming action items (for dashboard)
-     */
+    //  Get upcoming action items (for dashboard)
+     
     async getUpcomingActionItems(userId, days = 7) {
         return await wabifocusRepository.getUpcomingActionItems(days);
     }
 
-    /**
-     * Get complete meeting summary
-     */
+    //  Get complete meeting summary
+     
     async getMeetingSummary(meetingId, userId) {
         const isParticipant = await participantService.isParticipant(meetingId, userId);
         if (!isParticipant) {

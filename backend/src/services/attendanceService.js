@@ -3,9 +3,9 @@ import participantRepository from '../repositories/participantRepository.js';
 import meetingRepository from '../repositories/meetingRepository.js';
 
 class AttendanceService {
-    /**
-     * Record user joining meeting
-     */
+    
+    //   Record user joining meeting
+     
     async recordJoin(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -43,9 +43,8 @@ class AttendanceService {
         return attendance;
     }
 
-    /**
-     * Record user leaving meeting
-     */
+    //   Record user leaving meeting
+    
     async recordLeave(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -63,9 +62,8 @@ class AttendanceService {
         return attendance;
     }
 
-    /**
-     * Get meeting attendance
-     */
+    //   Get meeting attendance
+     
     async getMeetingAttendance(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -108,9 +106,8 @@ class AttendanceService {
         };
     }
 
-    /**
-     * Get attendance report
-     */
+    //   Get attendance report
+     
     async getAttendanceReport(meetingId, userId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -165,9 +162,8 @@ class AttendanceService {
         };
     }
 
-    /**
-     * Get user attendance history
-     */
+    //   Get user attendance history
+     
     async getUserAttendance(userId, page = 1, limit = 20) {
         const offset = (page - 1) * limit;
         const history = await attendanceRepository.getUserAttendance(userId, limit, offset);
@@ -187,9 +183,8 @@ class AttendanceService {
         };
     }
 
-    /**
-     * Update attendance status
-     */
+    //   Update attendance status
+     
     async updateStatus(meetingId, userId, status, requesterId) {
         const validStatuses = ['present', 'late', 'absent', 'excused'];
         if (!validStatuses.includes(status)) {
@@ -205,9 +200,8 @@ class AttendanceService {
         return await attendanceRepository.updateStatus(meetingId, userId, status);
     }
 
-    /**
-     * Update meeting analytics
-     */
+    //   Update meeting analytics
+     
     async updateMeetingAnalytics(meetingId) {
         try {
             const analytics = await attendanceRepository.getMeetingAnalytics(meetingId);
@@ -257,9 +251,8 @@ class AttendanceService {
         }
     }
 
-    /**
-     * Calculate engagement score
-     */
+    //   Calculate engagement score
+     
     calculateEngagementScore(analytics) {
         let score = 0;
         const maxScore = 100;
