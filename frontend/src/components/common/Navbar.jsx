@@ -57,7 +57,18 @@ function Navbar() {
   >
     About
   </Link>
+   {/* <Link to="/attendance">Attendance</Link> */}
          <Link
+    to="/Attendance"
+    className={
+      location.pathname === "/Attendance"
+        ? "nav-link active"
+        : "nav-link"
+    }
+  >
+   Attendance
+  </Link>
+     <Link
     to="/Meeting"
     className={
       location.pathname === "/Meeting"
@@ -65,7 +76,7 @@ function Navbar() {
         : "nav-link"
     }
   >
-   Meeting
+   
   </Link>
             </>
           ) : (

@@ -10,6 +10,7 @@ import AboutPage from "../pages/AboutPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import RegisterPage from "../pages/RegisterPage.jsx";
 import MeetingPage from "../pages/MeetingPage.jsx";
+import AttendancePage from "../pages/AttendancePage.jsx";
 
 function AppRouter() {
   return (
@@ -58,6 +59,10 @@ function AppRouter() {
           path="/meeting/:code"
           element={<MeetingPage />}
         />
+        <Route
+  path="/attendance"
+  element={<AttendancePage />}
+/>
 
       </Routes>
 
