@@ -1,3 +1,4 @@
+import MeetingCard from "../components/MeetingCard/MeetingCard";
 function MeetingPage() {
   return (
     <div>
@@ -24,16 +25,34 @@ function MeetingPage() {
       </div>
 
       {/* Meeting List */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
+            
+        <div>
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-gray-900">
             Upcoming Meetings
-          </h2>
+            </h2>
 
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600">
-            0 Meetings
-          </span>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600">
+            2 Meetings
+            </span>
         </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+            <MeetingCard
+            title="Weekly Team Meeting"
+            date="August 25, 2026"
+            time="10:00 AM"
+            host="Wabi Seminar"
+            />
+
+            <MeetingCard
+            title="Project Planning"
+            date="August 27, 2026"
+            time="2:00 PM"
+            host="Wabi Team"
+            />
+        </div>
+</div>
 
         {/* Empty State */}
         <div className="rounded-lg border border-dashed p-10 text-center">
@@ -50,7 +69,7 @@ function MeetingPage() {
           </button>
         </div>
       </div>
-    </div>
+    
   );
 }
 
