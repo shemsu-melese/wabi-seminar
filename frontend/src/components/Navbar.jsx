@@ -39,28 +39,19 @@ function Navbar() {
 
           <Link
             to="/login"
-            className="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700"
+            className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
           >
             Login
           </Link>
 
           <Link
             to="/register"
-            className="rounded-lg border border-blue-600 px-5 py-2 font-semibold text-blue-600 hover:bg-blue-50"
+            className="rounded-lg border border-blue-600 px-5 py-2 text-blue-600 hover:bg-blue-50"
           >
             Register
           </Link>
 
         </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="rounded-lg border px-3 py-2 text-gray-700 md:hidden"
-          type="button"
-        >
-          Menu
-        </button>
-
       </div>
     </nav>
   );

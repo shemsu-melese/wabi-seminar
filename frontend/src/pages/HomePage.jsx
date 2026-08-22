@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function HomePage() {
   return (
     <>
@@ -21,13 +22,19 @@ function HomePage() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <button className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
+            <Link
+              to="/register"
+              className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+            >
               Get Started
-            </button>
+            </Link>
 
-            <button className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 hover:bg-gray-100">
-              Join Meeting
-            </button>
+            <Link
+                to="/meetings"
+                className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 hover:bg-gray-100"
+              >
+                Join Meeting
+            </Link>
           </div>
         </div>
       </section>
