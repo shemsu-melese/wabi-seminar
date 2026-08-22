@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import SettingsPage from "../pages/SettingsPage";
 
 import DashboardPage from "../pages/DashboardPage";
 import MeetingPage from "../pages/MeetingPage";
@@ -39,7 +40,7 @@ function AppRouter() {
           />
         </Route>
         <Route path="/chat" element={<ChatPage />} />
-
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </BrowserRouter>
   );
