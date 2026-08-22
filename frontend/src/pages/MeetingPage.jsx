@@ -1,7 +1,12 @@
+import { useState } from "react";
+
 import Button from "../components/Button/Button";
 import MeetingCard from "../components/MeetingCard/MeetingCard";
+import CreateMeetingForm from "../components/CreateMeetingForm/CreateMeetingForm";
 
 function MeetingPage() {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
   return (
     <div>
 
@@ -18,11 +23,20 @@ function MeetingPage() {
           </p>
         </div>
 
-        <Button>
+        <Button
+          onClick={() => setShowCreateForm(true)}
+        >
           Create Meeting
         </Button>
 
       </div>
+
+      {/* Create Meeting Form */}
+      {showCreateForm && (
+        <CreateMeetingForm
+          onCancel={() => setShowCreateForm(false)}
+        />
+      )}
 
       {/* Meeting Summary */}
       <div className="mb-8 grid gap-6 sm:grid-cols-3">
