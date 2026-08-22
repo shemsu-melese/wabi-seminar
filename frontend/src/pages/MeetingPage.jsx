@@ -1,76 +1,100 @@
 import Button from "../components/Button/Button";
 import MeetingCard from "../components/MeetingCard/MeetingCard";
+
 function MeetingPage() {
   return (
     <div>
+
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Meetings
-        </h1>
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 
-        <p className="mt-2 text-gray-600">
-          Create, manage, and join your meetings.
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="mb-8 flex flex-wrap gap-4">
-        <Button>
-                Create Meeting
-        </Button>
-
-        <Button variant="secondary">
-            Join Meeting
-        </Button>
-      </div>
-
-      {/* Meeting List */}
-            
         <div>
-        <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
-            Upcoming Meetings
-            </h2>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Meetings
+          </h1>
 
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600">
-            2 Meetings
-            </span>
+          <p className="mt-2 text-gray-600">
+            Create, manage, and join your meetings.
+          </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-            <MeetingCard
+        <Button>
+          Create Meeting
+        </Button>
+
+      </div>
+
+      {/* Meeting Summary */}
+      <div className="mb-8 grid gap-6 sm:grid-cols-3">
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Total Meetings
+          </p>
+
+          <p className="mt-2 text-2xl font-bold text-gray-900">
+            3
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Upcoming
+          </p>
+
+          <p className="mt-2 text-2xl font-bold text-blue-600">
+            2
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Completed
+          </p>
+
+          <p className="mt-2 text-2xl font-bold text-green-600">
+            1
+          </p>
+        </div>
+
+      </div>
+
+      {/* Upcoming Meetings */}
+      <div>
+
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">
+            Upcoming Meetings
+          </h2>
+
+          <span className="text-sm text-gray-500">
+            2 meetings
+          </span>
+        </div>
+
+        <div className="space-y-5">
+
+          <MeetingCard
             title="Weekly Team Meeting"
             date="August 25, 2026"
             time="10:00 AM"
-            host="Wabi Seminar"
-            />
+            host="Abdisa"
+            participants="8"
+          />
 
-            <MeetingCard
+          <MeetingCard
             title="Project Planning"
             date="August 27, 2026"
             time="2:00 PM"
-            host="Wabi Team"
-            />
+            host="Abdisa"
+            participants="12"
+          />
+
         </div>
-</div>
 
-        {/* Empty State */}
-        <div className="rounded-lg border border-dashed p-10 text-center">
-          <h3 className="text-lg font-semibold text-gray-900">
-            No upcoming meetings
-          </h3>
-
-          <p className="mt-2 text-gray-500">
-            Create a new meeting or join an existing meeting.
-          </p>
-
-          <button className="mt-5 rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700">
-            Create Your First Meeting
-          </button>
-        </div>
       </div>
-    
+
+    </div>
   );
 }
 
