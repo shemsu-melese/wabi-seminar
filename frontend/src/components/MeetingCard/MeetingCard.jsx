@@ -1,6 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import Button from "../Button/Button";
-
 function MeetingCard({
+    
   title,
   date,
   time,
@@ -10,6 +11,7 @@ function MeetingCard({
   onDelete,
   onEdit,
 }) {
+    const navigate = useNavigate();
   return (
     <div className="rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
 
@@ -68,8 +70,10 @@ function MeetingCard({
       {/* Actions */}
       <div className="mt-6 flex flex-wrap gap-3">
 
-        <Button>
-          Join Meeting
+        <Button
+            onClick={() => navigate("/join-meeting")}
+            >
+            Join Meeting
         </Button>
 
         <Button

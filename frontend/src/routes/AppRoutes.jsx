@@ -10,6 +10,7 @@ import MeetingPage from "../pages/MeetingPage";
 import MeetingHistoryPage from "../pages/MeetingHistoryPage";
 import AttendancePage from "../pages/AttendancePage";
 import ChatPage from "../pages/ChatPage";
+import JoinMeetingPage from "../pages/JoinMeetingPage";
 
 import PublicLayout from "../layouts/PublicLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -30,6 +31,7 @@ function AppRouter() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/meetings" element={<MeetingPage />} />
+          <Route path="/join-meeting" element={<JoinMeetingPage />} />
           <Route
             path="/history"
             element={<MeetingHistoryPage />}
