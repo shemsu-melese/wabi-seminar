@@ -61,6 +61,35 @@ function MeetingPage() {
     )
   );
 }
+function handleEditMeeting(id) {
+  const meeting = meetings.find(
+    (item) => item.id === id
+  );
+
+  if (!meeting) {
+    return;
+  }
+
+  const newTitle = window.prompt(
+    "Enter new meeting title:",
+    meeting.title
+  );
+
+  if (!newTitle) {
+    return;
+  }
+
+  setMeetings((previousMeetings) =>
+    previousMeetings.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            title: newTitle,
+          }
+        : item
+    )
+  );
+}
 
   return (
     <div>
@@ -155,6 +184,7 @@ function MeetingPage() {
                     participants={meeting.participants}
                     status={meeting.status}
                     onDelete={() => handleDeleteMeeting(meeting.id)}
+                    onEdit={() => handleEditMeeting(meeting.id)}
                     />
             ))
           ) : (
