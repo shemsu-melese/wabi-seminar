@@ -7,12 +7,51 @@ import CreateMeetingForm from "../components/CreateMeetingForm/CreateMeetingForm
 function MeetingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  const [meetings, setMeetings] = useState([
+    {
+      id: 1,
+      title: "Weekly Team Meeting",
+      date: "August 25, 2026",
+      time: "10:00 AM",
+      host: "Abdisa",
+      participants: 8,
+      status: "Upcoming",
+    },
+    {
+      id: 2,
+      title: "Project Planning",
+      date: "August 27, 2026",
+      time: "2:00 PM",
+      host: "Abdisa",
+      participants: 12,
+      status: "Upcoming",
+    },
+  ]);
+
+  function handleCreateMeeting(newMeeting) {
+    const meeting = {
+      id: Date.now(),
+      title: newMeeting.title,
+      date: newMeeting.date,
+      time: newMeeting.time,
+      host: "Abdisa",
+      participants: 0,
+      status: "Upcoming",
+    };
+
+    setMeetings((previousMeetings) => [
+      ...previousMeetings,
+      meeting,
+    ]);
+
+    setShowCreateForm(false);
+  }
+
   return (
     <div>
 
       {/* Page Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Meetings
@@ -23,18 +62,16 @@ function MeetingPage() {
           </p>
         </div>
 
-        <Button
-          onClick={() => setShowCreateForm(true)}
-        >
+        <Button onClick={() => setShowCreateForm(true)}>
           Create Meeting
         </Button>
-
       </div>
 
       {/* Create Meeting Form */}
       {showCreateForm && (
         <CreateMeetingForm
           onCancel={() => setShowCreateForm(false)}
+          onCreate={handleCreateMeeting}
         />
       )}
 
@@ -47,7 +84,7 @@ function MeetingPage() {
           </p>
 
           <p className="mt-2 text-2xl font-bold text-gray-900">
-            3
+            {meetings.length}
           </p>
         </div>
 
@@ -57,7 +94,9 @@ function MeetingPage() {
           </p>
 
           <p className="mt-2 text-2xl font-bold text-blue-600">
-            2
+            {meetings.filter(
+              (meeting) => meeting.status === "Upcoming"
+            ).length}
           </p>
         </div>
 
@@ -67,13 +106,15 @@ function MeetingPage() {
           </p>
 
           <p className="mt-2 text-2xl font-bold text-green-600">
-            1
+            {meetings.filter(
+              (meeting) => meeting.status === "Completed"
+            ).length}
           </p>
         </div>
 
       </div>
 
-      {/* Upcoming Meetings */}
+      {/* Meetings */}
       <div>
 
         <div className="mb-5 flex items-center justify-between">
@@ -82,27 +123,35 @@ function MeetingPage() {
           </h2>
 
           <span className="text-sm text-gray-500">
-            2 meetings
+            {meetings.length} meetings
           </span>
         </div>
 
         <div className="space-y-5">
 
-          <MeetingCard
-            title="Weekly Team Meeting"
-            date="August 25, 2026"
-            time="10:00 AM"
-            host="Abdisa"
-            participants="8"
-          />
+          {meetings.length > 0 ? (
+            meetings.map((meeting) => (
+              <MeetingCard
+                key={meeting.id}
+                title={meeting.title}
+                date={meeting.date}
+                time={meeting.time}
+                host={meeting.host}
+                participants={meeting.participants}
+                status={meeting.status}
+              />
+            ))
+          ) : (
+            <div className="rounded-xl border border-dashed bg-white p-10 text-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                No meetings
+              </h3>
 
-          <MeetingCard
-            title="Project Planning"
-            date="August 27, 2026"
-            time="2:00 PM"
-            host="Abdisa"
-            participants="12"
-          />
+              <p className="mt-2 text-gray-500">
+                Create your first meeting to get started.
+              </p>
+            </div>
+          )}
 
         </div>
 

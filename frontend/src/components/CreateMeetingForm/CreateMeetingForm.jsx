@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../Button/Button";
 
-function CreateMeetingForm({ onCancel }) {
+function CreateMeetingForm({ onCancel, onCreate }) {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -19,14 +19,10 @@ function CreateMeetingForm({ onCancel }) {
   }
 
   function handleSubmit(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    console.log("Meeting data:", formData);
-
-    alert("Meeting created successfully!");
-
-    onCancel();
-  }
+  onCreate(formData);
+}
 
   return (
     <div className="mb-8 rounded-xl border bg-white p-6 shadow-sm">
