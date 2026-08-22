@@ -7,9 +7,9 @@ function HomePage() {
         className="mx-auto flex min-h-150 max-w-7xl items-center px-6 py-20"
       >
         <div className="max-w-3xl">
-          <p className="mb-4 font-semibold text-blue-600">
+          {/* <p className="mb-4 font-semibold text-blue-600">
             Wabi Seminar
-          </p>
+          </p> */}
 
           <h1 className="text-4xl font-bold leading-tight text-gray-900 md:text-6xl">
             Modern meetings made simple
