@@ -8,6 +8,7 @@ import DashboardPage from "../pages/DashboardPage";
 import MeetingPage from "../pages/MeetingPage";
 import MeetingHistoryPage from "../pages/MeetingHistoryPage";
 import AttendancePage from "../pages/AttendancePage";
+import ChatPage from "../pages/ChatPage";
 
 import PublicLayout from "../layouts/PublicLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -37,6 +38,7 @@ function AppRouter() {
             element={<AttendancePage />}
           />
         </Route>
+        <Route path="/chat" element={<ChatPage />} />
 
       </Routes>
     </BrowserRouter>
