@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import MeetingHistoryPage from "../pages/MeetingHistoryPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -7,6 +7,7 @@ import DashboardPage from "../pages/DashboardPage";
 
 import PublicLayout from "../layouts/PublicLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
+import MeetingPage from "../pages/MeetingPage";
 
 function AppRouter() {
   return (
@@ -22,7 +23,12 @@ function AppRouter() {
 
         {/* Dashboard */}
         <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/meetings" element={<MeetingPage />} />
+              <Route
+                path="/history"
+                element={<MeetingHistoryPage />}
+              />
         </Route>
 
       </Routes>
