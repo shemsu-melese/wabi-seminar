@@ -1,78 +1,111 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 function DashboardLayout() {
+  const location = useLocation();
+
+  const navItems = [
+    {
+      name: "Dashboard",
+      path: "/dashboard",
+    },
+    {
+      name: "Meetings",
+      path: "/meetings",
+    },
+    {
+      name: "Attendance",
+      path: "/attendance",
+    },
+    {
+      name: "Chat",
+      path: "/chat",
+    },
+    {
+      name: "Meeting History",
+      path: "/history",
+    },
+    {
+      name: "Settings",
+      path: "/settings",
+    },
+  ];
+
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="hidden w-64 bg-white border-r md:block">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600">
-            Wabi Seminar
-          </h1>
-        </div>
 
-        <nav className="px-4 space-y-2">
+      {/* Sidebar */}
+      <aside className="hidden w-64 shrink-0 border-r bg-white md:block">
+
+        {/* Logo */}
+        <div className="border-b p-6">
           <Link
             to="/dashboard"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+            className="text-2xl font-bold text-blue-600"
           >
-            Dashboard
+            Wabi Seminar
           </Link>
 
-          <Link
-            to="/meetings"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            Meetings
-          </Link>
+          <p className="mt-1 text-sm text-gray-500">
+            Meeting Platform
+          </p>
+        </div>
 
-          <Link
-            to="/attendance"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            Attendance
-          </Link>
+        {/* Navigation */}
+        <nav className="space-y-1 p-4">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
 
-          <Link
-            to="/chat"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            Chat
-          </Link>
-
-          <Link
-            to="/history"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            Meeting History
-          </Link>
-
-          <Link
-            to="/settings"
-            className="block rounded-lg px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            Settings
-          </Link>
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`block rounded-lg px-4 py-3 font-medium transition ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
 
-      {/* Main area */}
-      <div className="flex-1">
+      {/* Main Area */}
+      <div className="flex min-w-0 flex-1 flex-col">
+
+        {/* Header */}
         <header className="border-b bg-white px-6 py-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Dashboard
-            </h2>
 
-            <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {navItems.find(
+                  (item) => item.path === location.pathname
+                )?.name || "Dashboard"}
+              </h2>
+
+              <p className="text-sm text-gray-500">
+                Welcome back
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
+            >
               Logout
             </button>
+
           </div>
         </header>
 
-        <main className="p-6">
+        {/* Page Content */}
+        <main className="flex-1 p-6">
           <Outlet />
         </main>
+
       </div>
     </div>
   );
