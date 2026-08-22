@@ -7,13 +7,14 @@ function MeetingCard({
   host,
   participants,
   status = "Upcoming",
+  onDelete,
+  onEdit,
 }) {
   return (
     <div className="rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-
         <div>
           <h3 className="text-xl font-bold text-gray-900">
             {title}
@@ -27,10 +28,9 @@ function MeetingCard({
         <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600">
           {status}
         </span>
-
       </div>
 
-      {/* Meeting Information */}
+      {/* Information */}
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
 
         <div>
@@ -72,12 +72,21 @@ function MeetingCard({
           Join Meeting
         </Button>
 
-        <Button variant="secondary">
-          Details
+        <Button
+          variant="secondary"
+          onClick={onEdit}
+        >
+          Edit
+        </Button>
+
+        <Button
+          variant="danger"
+          onClick={onDelete}
+        >
+          Delete
         </Button>
 
       </div>
-
     </div>
   );
 }

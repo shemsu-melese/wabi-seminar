@@ -46,6 +46,21 @@ function MeetingPage() {
 
     setShowCreateForm(false);
   }
+  function handleDeleteMeeting(id) {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this meeting?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setMeetings((previousMeetings) =>
+    previousMeetings.filter(
+      (meeting) => meeting.id !== id
+    )
+  );
+}
 
   return (
     <div>
@@ -132,14 +147,15 @@ function MeetingPage() {
           {meetings.length > 0 ? (
             meetings.map((meeting) => (
               <MeetingCard
-                key={meeting.id}
-                title={meeting.title}
-                date={meeting.date}
-                time={meeting.time}
-                host={meeting.host}
-                participants={meeting.participants}
-                status={meeting.status}
-              />
+                    key={meeting.id}
+                    title={meeting.title}
+                    date={meeting.date}
+                    time={meeting.time}
+                    host={meeting.host}
+                    participants={meeting.participants}
+                    status={meeting.status}
+                    onDelete={() => handleDeleteMeeting(meeting.id)}
+                    />
             ))
           ) : (
             <div className="rounded-xl border border-dashed bg-white p-10 text-center">
