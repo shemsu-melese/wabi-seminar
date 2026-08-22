@@ -1,15 +1,12 @@
-import React from 'react'
-import './App.css'
-
+import "./App.css";
+import AppRouter from "./routes/AppRouter.jsx";
+// import MeetingPage from "./pages/MeetingPage.jsx";
 function App() {
-  return (
-    <div className='container'>
-      <h1 className='head'>Welcome to wabiseminar</h1>
-      <p className='para'>The modern meeting platform</p>
-    </div>
-  )
+  return <AppRouter />;
 }
+{/* <Route
+  path="/meeting/:code"
+  element={<MeetingPage />}
+/> */}
 
-export default App
-
-
+export default App;
