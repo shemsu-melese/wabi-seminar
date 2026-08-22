@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 function MeetingCard({
   title,
   date,
@@ -40,13 +41,17 @@ function MeetingCard({
       </div>
 
       <div className="mt-6 flex gap-3">
-        <button className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700">
-          Join
-        </button>
+        <Button>
+                Join
+            </Button>
 
-        <button className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 hover:bg-gray-100">
-          Details
-        </button>
+            <Button variant="secondary">
+                 Details
+            </Button>
+
+            <Button variant="outline">
+                Edit
+            </Button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-
+import Button from "../components/Button/Button";
 import MeetingCard from "../components/MeetingCard/MeetingCard";
 function MeetingPage() {
   return (
@@ -16,13 +16,13 @@ function MeetingPage() {
 
       {/* Actions */}
       <div className="mb-8 flex flex-wrap gap-4">
-        <button className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
-          Create Meeting
-        </button>
+        <Button>
+                Create Meeting
+        </Button>
 
-        <button className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 hover:bg-gray-100">
-          Join Meeting
-        </button>
+        <Button variant="secondary">
+            Join Meeting
+        </Button>
       </div>
 
       {/* Meeting List */}
