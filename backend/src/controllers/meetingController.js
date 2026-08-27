@@ -1,211 +1,186 @@
 import meetingService from '../services/meetingService.js';
-import { successResponse, errorResponse } from '../utils/response.js';
 
 class MeetingController {
-    
-    //   Create a new meeting
-    //   POST /api/meetings
-     
     async createMeeting(req, res) {
         try {
             const userId = req.user.id;
             const meetingData = req.body;
-
-            const meeting = await meetingService.createMeeting(userId, meetingData);
-
-            return successResponse(res, 201, 'Meeting created successfully', meeting);
+            const result = await meetingService.createMeeting(userId, meetingData);
+            res.status(201).json({ success: true, data: result, message: 'Meeting created successfully' });
         } catch (error) {
-            return errorResponse(res, 400, error.message);
+            console.error('❌ createMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 
-    //   Get meeting details
-    //   GET /api/meetings/:id
-     
-    async getMeeting(req, res) {
+    async getUserMeetings(req, res) {
         try {
-            const meetingId = parseInt(req.params.id);
             const userId = req.user.id;
-
-            const meeting = await meetingService.getMeetingDetails(meetingId, userId);
-
-            return successResponse(res, 200, 'Meeting details retrieved', meeting);
+            const { status, page = 1, limit = 20 } = req.query;
+            console.log(`📊 Fetching meetings for user ${userId}, page ${page}, limit ${limit}`);
+            const result = await meetingService.getUserMeetings(userId, status, parseInt(page), parseInt(limit));
+            res.status(200).json({ success: true, data: result });
         } catch (error) {
-            return errorResponse(res, 404, error.message);
+            console.error('❌ getUserMeetings error:', error);
+            console.error('Stack:', error.stack);
+            res.status(400).json({ success: false, message: error.message || 'Failed to load meetings' });
         }
     }
 
-    //   Get meeting by code
-    //   GET /api/meetings/code/:code
-     
+    async getUpcomingMeetings(req, res) {
+        try {
+            const userId = req.user.id;
+            const result = await meetingService.getUpcomingMeetings(userId);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('❌ getUpcomingMeetings error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    async getActiveMeetings(req, res) {
+        try {
+            const result = await meetingService.getActiveMeetings();
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('❌ getActiveMeetings error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    async getStats(req, res) {
+        try {
+            const userId = req.user.id;
+            const result = await meetingService.getMeetingStats(userId);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('❌ getStats error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
     async getMeetingByCode(req, res) {
         try {
             const { code } = req.params;
             const userId = req.user.id;
-
-            const meeting = await meetingService.getMeetingByCode(code, userId);
-
-            return successResponse(res, 200, 'Meeting details retrieved', meeting);
+            const result = await meetingService.getMeetingByCode(code, userId);
+            res.status(200).json({ success: true, data: result });
         } catch (error) {
-            return errorResponse(res, 404, error.message);
+            console.error('❌ getMeetingByCode error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 
-    //   Join a meeting
-    //   POST /api/meetings/:id/join
-     
+    async getMeeting(req, res) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+            const result = await meetingService.getMeetingDetails(id, userId);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('❌ getMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    async updateMeeting(req, res) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+            const updateData = req.body;
+            const result = await meetingService.updateMeeting(userId, id, updateData);
+            res.status(200).json({ success: true, data: result, message: 'Meeting updated' });
+        } catch (error) {
+            console.error('❌ updateMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    async deleteMeeting(req, res) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+            await meetingService.deleteMeeting(userId, id);
+            res.status(200).json({ success: true, message: 'Meeting deleted' });
+        } catch (error) {
+            console.error('❌ deleteMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
     async joinMeeting(req, res) {
         try {
+            const { id } = req.params;
             const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
             const { password } = req.body;
-
-            const meeting = await meetingService.joinMeeting(userId, meetingId, password);
-
-            return successResponse(res, 200, 'Joined meeting successfully', meeting);
+            console.log(`🔵 User ${userId} attempting to join meeting ${id}`);
+            const result = await meetingService.joinMeeting(userId, id, password);
+            res.status(200).json({ success: true, data: result, message: 'Joined meeting successfully' });
         } catch (error) {
-            return errorResponse(res, 400, error.message);
+            console.error('❌ Join meeting error:', error);
+            console.error('Stack:', error.stack);
+            const status = error.message.includes('not found') || error.message.includes('required') ? 400 : 500;
+            res.status(status).json({ success: false, message: error.message });
         }
     }
 
-    //   Leave a meeting
-    //   POST /api/meetings/:id/leave
-     
     async leaveMeeting(req, res) {
         try {
+            const { id } = req.params;
             const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const result = await meetingService.leaveMeeting(userId, meetingId);
-
-            return successResponse(res, 200, result.message);
+            const result = await meetingService.leaveMeeting(userId, id);
+            res.status(200).json({ success: true, data: result, message: 'Left meeting' });
         } catch (error) {
-            return errorResponse(res, 400, error.message);
+            console.error('❌ leaveMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 
-    //  Start a meeting
-    //  POST /api/meetings/:id/start
-     
     async startMeeting(req, res) {
         try {
+            const { id } = req.params;
             const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const meeting = await meetingService.startMeeting(userId, meetingId);
-
-            return successResponse(res, 200, 'Meeting started successfully', meeting);
+            const result = await meetingService.startMeeting(userId, id);
+            res.status(200).json({ success: true, data: result, message: 'Meeting started' });
         } catch (error) {
-            return errorResponse(res, 400, error.message);
+            console.error('❌ startMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
-
-    //   End a meeting
-    //   POST /api/meetings/:id/end
 
     async endMeeting(req, res) {
         try {
+            const { id } = req.params;
             const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const meeting = await meetingService.endMeeting(userId, meetingId);
-
-            return successResponse(res, 200, 'Meeting ended successfully', meeting);
+            const result = await meetingService.endMeeting(userId, id);
+            res.status(200).json({ success: true, data: result, message: 'Meeting ended' });
         } catch (error) {
-            return errorResponse(res, 400, error.message);
+            console.error('❌ endMeeting error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 
-    //  Get user's meetings
-    //  GET /api/meetings
-     
-    async getUserMeetings(req, res) {
+    async admitParticipant(req, res) {
         try {
-            const userId = req.user.id;
-            const status = req.query.status || null;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 20;
-
-            const result = await meetingService.getUserMeetings(userId, status, page, limit);
-
-            return successResponse(res, 200, 'Meetings retrieved successfully', result);
+            const { id: meetingId, userId } = req.params;
+            const hostId = req.user.id;
+            const result = await meetingService.admitParticipant(hostId, meetingId, userId);
+            res.status(200).json({ success: true, data: result, message: 'Participant admitted' });
         } catch (error) {
-            return errorResponse(res, 500, error.message);
+            console.error('❌ admitParticipant error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 
-    //   Get upcoming meetings
-    //   GET /api/meetings/upcoming
-     
-    async getUpcomingMeetings(req, res) {
+    async removeParticipant(req, res) {
         try {
-            const userId = req.user.id;
-
-            const meetings = await meetingService.getUpcomingMeetings(userId);
-
-            return successResponse(res, 200, 'Upcoming meetings retrieved', meetings);
+            const { id: meetingId, userId } = req.params;
+            const hostId = req.user.id;
+            const result = await meetingService.removeParticipant(hostId, meetingId, userId);
+            res.status(200).json({ success: true, data: result, message: 'Participant removed' });
         } catch (error) {
-            return errorResponse(res, 500, error.message);
-        }
-    }
-
-    //   Update meeting
-    //   PUT /api/meetings/:id
-     
-    async updateMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-            const data = req.body;
-
-            const meeting = await meetingService.updateMeeting(userId, meetingId, data);
-
-            return successResponse(res, 200, 'Meeting updated successfully', meeting);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
-        }
-    }
-
-    //  Delete meeting
-    //  DELETE /api/meetings/:id
-     
-    async deleteMeeting(req, res) {
-        try {
-            const userId = req.user.id;
-            const meetingId = parseInt(req.params.id);
-
-            const result = await meetingService.deleteMeeting(userId, meetingId);
-
-            return successResponse(res, 200, result.message);
-        } catch (error) {
-            return errorResponse(res, 400, error.message);
-        }
-    }
-
-    //   Get meeting statistics
-    //   GET /api/meetings/stats
-     
-    async getStats(req, res) {
-        try {
-            const userId = req.user.id;
-            const stats = await meetingService.getMeetingStats(userId);
-
-            return successResponse(res, 200, 'Statistics retrieved', stats);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
-        }
-    }
-
-    //   Get active meetings
-    //   GET /api/meetings/active
-     
-    async getActiveMeetings(req, res) {
-        try {
-            const meetings = await meetingService.getActiveMeetings();
-
-            return successResponse(res, 200, 'Active meetings retrieved', meetings);
-        } catch (error) {
-            return errorResponse(res, 500, error.message);
+            console.error('❌ removeParticipant error:', error);
+            res.status(400).json({ success: false, message: error.message });
         }
     }
 }

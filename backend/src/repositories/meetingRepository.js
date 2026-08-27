@@ -1,28 +1,29 @@
 import { pool } from '../config/database.js';
-class MeetingRepository {
 
-    //   Create a new meeting
-    
+class MeetingRepository {
+    // ============================================
+    // CREATE MEETING
+    // ============================================
     async create(meetingData) {
         try {
-            const {
-                code,
-                title,
-                description,
-                created_by,
-                start_time,
-                end_time,
-                duration_minutes,
-                meeting_type,
-                max_participants,
-                password_hash,
-                is_locked,
-                waiting_room_enabled,
-                allow_screen_sharing,
-                allow_chat,
-                allow_reactions,
-                allow_raise_hand
-            } = meetingData;
+            const safe = {
+                code: meetingData.code ?? null,
+                title: meetingData.title ?? null,
+                description: meetingData.description ?? null,
+                created_by: meetingData.created_by ?? null,
+                start_time: meetingData.start_time ?? null,
+                end_time: meetingData.end_time ?? null,
+                duration_minutes: meetingData.duration_minutes ?? 30,
+                meeting_type: meetingData.meeting_type ?? 'other',
+                max_participants: meetingData.max_participants ?? 50,
+                password_hash: meetingData.password_hash ?? null,
+                is_locked: meetingData.is_locked ?? false,
+                waiting_room_enabled: meetingData.waiting_room_enabled ?? true,
+                allow_screen_sharing: meetingData.allow_screen_sharing ?? true,
+                allow_chat: meetingData.allow_chat ?? true,
+                allow_reactions: meetingData.allow_reactions ?? true,
+                allow_raise_hand: meetingData.allow_raise_hand ?? true,
+            };
 
             const [result] = await pool.execute(
                 `INSERT INTO meetings (
@@ -32,39 +33,60 @@ class MeetingRepository {
                     allow_chat, allow_reactions, allow_raise_hand
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    code, 
-                    title, 
-                    description, 
-                    created_by, 
-                    start_time, 
-                    end_time,
-                    duration_minutes, 
-                    meeting_type, 
-                    max_participants, 
-                    password_hash,
-                    is_locked || false, 
-                    waiting_room_enabled !== undefined ? waiting_room_enabled : true,
-                    allow_screen_sharing !== undefined ? allow_screen_sharing : true,
-                    allow_chat !== undefined ? allow_chat : true,
-                    allow_reactions !== undefined ? allow_reactions : true,
-                    allow_raise_hand !== undefined ? allow_raise_hand : true
+                    safe.code,
+                    safe.title,
+                    safe.description,
+                    safe.created_by,
+                    safe.start_time,
+                    safe.end_time,
+                    safe.duration_minutes,
+                    safe.meeting_type,
+                    safe.max_participants,
+                    safe.password_hash,
+                    safe.is_locked,
+                    safe.waiting_room_enabled,
+                    safe.allow_screen_sharing,
+                    safe.allow_chat,
+                    safe.allow_reactions,
+                    safe.allow_raise_hand,
                 ]
             );
 
             return this.findById(result.insertId);
         } catch (error) {
-            console.error('Error creating meeting:', error);
+            console.error('❌ Error creating meeting:', error);
             throw error;
         }
     }
 
-    //   Find meeting by ID
-     
+    // ============================================
+    // FIND BY ID
+    // ============================================
     async findById(id) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
+                    m.deleted_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name,
                     u.email as creator_email
@@ -75,18 +97,39 @@ class MeetingRepository {
             );
             return rows[0] || null;
         } catch (error) {
-            console.error('Error finding meeting by ID:', error);
+            console.error('❌ Error finding meeting by ID:', error);
             throw error;
         }
     }
 
-    //   Find meeting by code
-     
+    // ============================================
+    // FIND BY CODE
+    // ============================================
     async findByCode(code) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
+                    m.deleted_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name,
                     u.email as creator_email
@@ -97,18 +140,44 @@ class MeetingRepository {
             );
             return rows[0] || null;
         } catch (error) {
-            console.error('Error finding meeting by code:', error);
+            console.error('❌ Error finding meeting by code:', error);
             throw error;
         }
     }
 
-    //   Get meetings for a user
-     
+    // ============================================
+    // FIND BY USER – fixed (safe)
+    // ============================================
     async findByUser(userId, status = null, limit = 50, offset = 0) {
         try {
+            if (!userId) {
+                console.error('findByUser: userId is required');
+                return [];
+            }
+
             let query = `
                 SELECT DISTINCT
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
+                    m.deleted_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name,
                     mp.role as user_role,
@@ -128,54 +197,79 @@ class MeetingRepository {
             }
 
             query += ' ORDER BY m.start_time DESC LIMIT ? OFFSET ?';
-            params.push(limit, offset);
+            params.push(parseInt(limit) || 50, parseInt(offset) || 0);
 
             const [rows] = await pool.execute(query, params);
             return rows;
         } catch (error) {
-            console.error('Error finding meetings by user:', error);
+            console.error('❌ Error finding meetings by user:', error);
             throw error;
         }
     }
 
-    //   Get meetings created by user
-     
-    async findByCreator(userId, limit = 50, offset = 0) {
+    // ============================================
+    // COUNT BY USER – fixed (safe)
+    // ============================================
+    async countByUser(userId) {
+        try {
+            if (!userId) {
+                console.error('countByUser: userId is required');
+                return 0;
+            }
+
+            const [rows] = await pool.execute(
+                `SELECT COUNT(DISTINCT m.id) as total
+                FROM meetings m
+                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
+                WHERE (m.created_by = ? OR mp.user_id = ?)
+                AND m.deleted_at IS NULL`,
+                [userId, userId]
+            );
+            return rows[0].total || 0;
+        } catch (error) {
+            console.error('❌ Error counting meetings by user:', error);
+            throw error;
+        }
+    }
+
+    // ============================================
+    // CODE EXISTS
+    // ============================================
+    async codeExists(code) {
         try {
             const [rows] = await pool.execute(
-                `SELECT 
-                    m.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    COUNT(mp.user_id) as participant_count
-                FROM meetings m
-                LEFT JOIN users u ON m.created_by = u.id
-                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-                WHERE m.created_by = ? AND m.deleted_at IS NULL
-                GROUP BY m.id
-                ORDER BY m.created_at DESC
-                LIMIT ? OFFSET ?`,
-                [userId, limit, offset]
+                'SELECT id FROM meetings WHERE code = ? AND deleted_at IS NULL',
+                [code]
             );
-            return rows;
+            return rows.length > 0;
         } catch (error) {
-            console.error('Error finding meetings by creator:', error);
+            console.error('❌ Error checking code existence:', error);
             throw error;
         }
     }
 
-    //   Update meeting
-     
+    // ============================================
+    // UPDATE
+    // ============================================
     async update(id, meetingData) {
         try {
             const updates = [];
             const values = [];
 
             const fields = [
-                'title', 'description', 'start_time', 'end_time',
-                'duration_minutes', 'meeting_type', 'max_participants',
-                'is_locked', 'waiting_room_enabled', 'allow_screen_sharing',
-                'allow_chat', 'allow_reactions', 'allow_raise_hand'
+                'title',
+                'description',
+                'start_time',
+                'end_time',
+                'duration_minutes',
+                'meeting_type',
+                'max_participants',
+                'is_locked',
+                'waiting_room_enabled',
+                'allow_screen_sharing',
+                'allow_chat',
+                'allow_reactions',
+                'allow_raise_hand',
             ];
 
             for (const field of fields) {
@@ -202,13 +296,14 @@ class MeetingRepository {
 
             return this.findById(id);
         } catch (error) {
-            console.error('Error updating meeting:', error);
+            console.error('❌ Error updating meeting:', error);
             throw error;
         }
     }
 
-    //   Update meeting status
-     
+    // ============================================
+    // UPDATE STATUS
+    // ============================================
     async updateStatus(id, status) {
         try {
             await pool.execute(
@@ -217,13 +312,14 @@ class MeetingRepository {
             );
             return this.findById(id);
         } catch (error) {
-            console.error('Error updating meeting status:', error);
+            console.error('❌ Error updating meeting status:', error);
             throw error;
         }
     }
 
-    //   Start meeting (set status to ongoing)
-     
+    // ============================================
+    // START MEETING
+    // ============================================
     async startMeeting(id) {
         try {
             await pool.execute(
@@ -232,13 +328,14 @@ class MeetingRepository {
             );
             return this.findById(id);
         } catch (error) {
-            console.error('Error starting meeting:', error);
+            console.error('❌ Error starting meeting:', error);
             throw error;
         }
     }
 
-    //   End meeting (set status to ended)
-     
+    // ============================================
+    // END MEETING
+    // ============================================
     async endMeeting(id) {
         try {
             await pool.execute(
@@ -247,12 +344,14 @@ class MeetingRepository {
             );
             return this.findById(id);
         } catch (error) {
-            console.error('Error ending meeting:', error);
+            console.error('❌ Error ending meeting:', error);
             throw error;
         }
     }
 
-    //   Delete meeting
+    // ============================================
+    // DELETE (soft delete)
+    // ============================================
     async delete(id) {
         try {
             await pool.execute(
@@ -260,36 +359,38 @@ class MeetingRepository {
                 [id]
             );
         } catch (error) {
-            console.error('Error deleting meeting:', error);
+            console.error('❌ Error deleting meeting:', error);
             throw error;
         }
     }
 
-    //   Count meetings for a user
-    async countByUser(userId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT COUNT(DISTINCT m.id) as total
-                FROM meetings m
-                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-                WHERE (m.created_by = ? OR mp.user_id = ?)
-                AND m.deleted_at IS NULL`,
-                [userId, userId]
-            );
-            return rows[0].total;
-        } catch (error) {
-            console.error('Error counting meetings by user:', error);
-            throw error;
-        }
-    }
-
-    //  Get upcoming meetings for a user
-     
+    // ============================================
+    // GET UPCOMING MEETINGS
+    // ============================================
     async getUpcomingMeetings(userId, limit = 10) {
         try {
             const [rows] = await pool.execute(
                 `SELECT DISTINCT
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name
                 FROM meetings m
@@ -305,18 +406,38 @@ class MeetingRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting upcoming meetings:', error);
+            console.error('❌ Error getting upcoming meetings:', error);
             throw error;
         }
     }
 
-    //  Get active meetings
-     
+    // ============================================
+    // GET ACTIVE MEETINGS
+    // ============================================
     async getActiveMeetings() {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name,
                     COUNT(mp.user_id) as participant_count
@@ -329,52 +450,14 @@ class MeetingRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting active meetings:', error);
+            console.error('❌ Error getting active meetings:', error);
             throw error;
         }
     }
 
-    //   Get meetings by status
-    async findByStatus(status, limit = 50, offset = 0) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    m.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    u.email as creator_email,
-                    COUNT(mp.user_id) as participant_count
-                FROM meetings m
-                LEFT JOIN users u ON m.created_by = u.id
-                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-                WHERE m.status = ? AND m.deleted_at IS NULL
-                GROUP BY m.id
-                ORDER BY m.created_at DESC
-                LIMIT ? OFFSET ?`,
-                [status, limit, offset]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error finding meetings by status:', error);
-            throw error;
-        }
-    }
-
-    //   Check if meeting code exists
-    async codeExists(code) {
-        try {
-            const [rows] = await pool.execute(
-                'SELECT id FROM meetings WHERE code = ? AND deleted_at IS NULL',
-                [code]
-            );
-            return rows.length > 0;
-        } catch (error) {
-            console.error('Error checking code existence:', error);
-            throw error;
-        }
-    }
-
-    //   Get meeting statistics
+    // ============================================
+    // GET STATISTICS
+    // ============================================
     async getStatistics(userId = null) {
         try {
             let query = `
@@ -401,20 +484,42 @@ class MeetingRepository {
                 active_meetings: 0,
                 scheduled_meetings: 0,
                 completed_meetings: 0,
-                avg_duration: 0
+                avg_duration: 0,
             };
         } catch (error) {
-            console.error('Error getting meeting statistics:', error);
+            console.error('❌ Error getting meeting statistics:', error);
             throw error;
         }
     }
 
-    //   Get meeting with full details including participants and WabiFocus
+    // ============================================
+    // GET MEETING WITH DETAILS
+    // ============================================
     async getMeetingWithDetails(id) {
         try {
             const [rows] = await pool.execute(
                 `SELECT 
-                    m.*,
+                    m.id,
+                    m.code,
+                    m.title,
+                    m.description,
+                    m.created_by,
+                    m.start_time,
+                    m.end_time,
+                    m.duration_minutes,
+                    m.status,
+                    m.meeting_type,
+                    m.max_participants,
+                    m.password_hash,
+                    m.is_locked,
+                    m.waiting_room_enabled,
+                    m.allow_screen_sharing,
+                    m.allow_chat,
+                    m.allow_reactions,
+                    m.allow_raise_hand,
+                    m.created_at,
+                    m.updated_at,
+                    m.deleted_at,
                     u.first_name as creator_first_name,
                     u.last_name as creator_last_name,
                     u.email as creator_email,
@@ -428,116 +533,7 @@ class MeetingRepository {
             );
             return rows[0] || null;
         } catch (error) {
-            console.error('Error getting meeting with details:', error);
-            throw error;
-        }
-    }
-
-    //   Search meetings by title or description
-    async search(searchTerm, userId = null, limit = 50, offset = 0) {
-        try {
-            let query = `
-                SELECT 
-                    m.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    COUNT(mp.user_id) as participant_count
-                FROM meetings m
-                LEFT JOIN users u ON m.created_by = u.id
-                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-                WHERE (m.title LIKE ? OR m.description LIKE ?)
-                AND m.deleted_at IS NULL
-            `;
-
-            const params = [`%${searchTerm}%`, `%${searchTerm}%`];
-
-            if (userId) {
-                query += ' AND (m.created_by = ? OR mp.user_id = ?)';
-                params.push(userId, userId);
-            }
-
-            query += ' GROUP BY m.id ORDER BY m.created_at DESC LIMIT ? OFFSET ?';
-            params.push(limit, offset);
-
-            const [rows] = await pool.execute(query, params);
-            return rows;
-        } catch (error) {
-            console.error('Error searching meetings:', error);
-            throw error;
-        }
-    }
-
-    //   Get meetings by date range
-    async findByDateRange(startDate, endDate, userId = null) {
-        try {
-            let query = `
-                SELECT 
-                    m.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    COUNT(mp.user_id) as participant_count
-                FROM meetings m
-                LEFT JOIN users u ON m.created_by = u.id
-                LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-                WHERE m.start_time BETWEEN ? AND ?
-                AND m.deleted_at IS NULL
-            `;
-
-            const params = [startDate, endDate];
-
-            if (userId) {
-                query += ' AND (m.created_by = ? OR mp.user_id = ?)';
-                params.push(userId, userId);
-            }
-
-            query += ' GROUP BY m.id ORDER BY m.start_time ASC';
-
-            const [rows] = await pool.execute(query, params);
-            return rows;
-        } catch (error) {
-            console.error('Error finding meetings by date range:', error);
-            throw error;
-        }
-    }
-
-    //   Update meeting password
-    async updatePassword(id, password_hash) {
-        try {
-            await pool.execute(
-                'UPDATE meetings SET password_hash = ? WHERE id = ?',
-                [password_hash, id]
-            );
-            return this.findById(id);
-        } catch (error) {
-            console.error('Error updating meeting password:', error);
-            throw error;
-        }
-    }
-
-    //   Lock/unlock meeting
-    async setLockStatus(id, isLocked) {
-        try {
-            await pool.execute(
-                'UPDATE meetings SET is_locked = ? WHERE id = ?',
-                [isLocked, id]
-            );
-            return this.findById(id);
-        } catch (error) {
-            console.error('Error setting lock status:', error);
-            throw error;
-        }
-    }
-
-    //   Toggle waiting room
-    async setWaitingRoom(id, enabled) {
-        try {
-            await pool.execute(
-                'UPDATE meetings SET waiting_room_enabled = ? WHERE id = ?',
-                [enabled, id]
-            );
-            return this.findById(id);
-        } catch (error) {
-            console.error('Error toggling waiting room:', error);
+            console.error('❌ Error getting meeting with details:', error);
             throw error;
         }
     }

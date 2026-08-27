@@ -3,13 +3,14 @@ import meetingRepository from '../repositories/meetingRepository.js';
 import participantRepository from '../repositories/participantRepository.js';
 import wabifocusRepository from '../repositories/wabifocusRepository.js';
 import { generateMeetingCode } from '../utils/generateMeetingCode.js';
+import { getIO } from '../socket.js';
+import { pool } from '../config/database.js';
 
 class MeetingService {
-    
-    //   Create a new meeting
-     
+    // ============================================
+    // CREATE MEETING
+    // ============================================
     async createMeeting(userId, meetingData) {
-        // Generate unique meeting code
         let code;
         let isUnique = false;
         let attempts = 0;
@@ -25,141 +26,123 @@ class MeetingService {
             throw new Error('Unable to generate unique meeting code');
         }
 
-        // Hash password if provided
         let password_hash = null;
         if (meetingData.password) {
             const saltRounds = 10;
             password_hash = await bcrypt.hash(meetingData.password, saltRounds);
         }
 
-        // Create meeting
-        const meeting = await meetingRepository.create({
+        const meetingPayload = {
             code,
             title: meetingData.title,
-            description: meetingData.description,
+            description: meetingData.description || null,
             created_by: userId,
             start_time: meetingData.start_time || null,
-            end_time: meetingData.end_time || null,
-            duration_minutes: meetingData.duration_minutes,
+            end_time: null,
+            duration_minutes: meetingData.duration_minutes || 30,
             meeting_type: meetingData.meeting_type || 'other',
             max_participants: meetingData.max_participants || 50,
-            password_hash,
+            password_hash: password_hash || null,
             is_locked: meetingData.is_locked || false,
             waiting_room_enabled: meetingData.waiting_room_enabled !== undefined ? meetingData.waiting_room_enabled : true,
             allow_screen_sharing: meetingData.allow_screen_sharing !== undefined ? meetingData.allow_screen_sharing : true,
             allow_chat: meetingData.allow_chat !== undefined ? meetingData.allow_chat : true,
             allow_reactions: meetingData.allow_reactions !== undefined ? meetingData.allow_reactions : true,
-            allow_raise_hand: meetingData.allow_raise_hand !== undefined ? meetingData.allow_raise_hand : true
+            allow_raise_hand: meetingData.allow_raise_hand !== undefined ? meetingData.allow_raise_hand : true,
+        };
+
+        Object.keys(meetingPayload).forEach((key) => {
+            if (meetingPayload[key] === undefined) {
+                meetingPayload[key] = null;
+            }
         });
 
-        // Add creator as host
+        const meeting = await meetingRepository.create(meetingPayload);
         await participantRepository.addParticipant(meeting.id, userId, 'host');
 
-        // Add WabiFocus items if provided
         if (meetingData.wabifocus) {
-            const { goal, agenda, outcomes, action_items } = meetingData.wabifocus;
-            
-            if (goal) {
+            const { goal, agenda } = meetingData.wabifocus;
+            if (goal && goal.trim()) {
                 await wabifocusRepository.create({
                     meeting_id: meeting.id,
                     user_id: userId,
                     type: 'goal',
-                    title: goal,
-                    priority: 'high'
+                    title: goal.trim(),
+                    priority: 'high',
+                    order_index: 0,
                 });
             }
-
-            if (agenda && agenda.length > 0) {
-                for (const item of agenda) {
+            if (agenda && Array.isArray(agenda)) {
+                const filtered = agenda.filter((item) => item && item.trim());
+                for (let i = 0; i < filtered.length; i++) {
                     await wabifocusRepository.create({
                         meeting_id: meeting.id,
                         user_id: userId,
                         type: 'agenda',
-                        title: item,
-                        priority: 'medium'
-                    });
-                }
-            }
-
-            if (outcomes) {
-                await wabifocusRepository.create({
-                    meeting_id: meeting.id,
-                    user_id: userId,
-                    type: 'outcome',
-                    title: outcomes,
-                    priority: 'medium'
-                });
-            }
-
-            if (action_items && action_items.length > 0) {
-                for (const item of action_items) {
-                    await wabifocusRepository.create({
-                        meeting_id: meeting.id,
-                        user_id: userId,
-                        type: 'action_item',
-                        title: item.title,
-                        description: item.description,
-                        assigned_to: item.assigned_to || null,
-                        due_date: item.due_date || null,
-                        priority: item.priority || 'medium'
+                        title: filtered[i].trim(),
+                        priority: 'medium',
+                        order_index: i + 1,
                     });
                 }
             }
         }
 
-        // Get meeting with WabiFocus items
-        const meetingWithDetails = await this.getMeetingDetails(meeting.id, userId);
-
-        return meetingWithDetails;
+        return this.getMeetingDetails(meeting.id, userId);
     }
 
-    //   Get meeting details with participants and WabiFocus
-     
+    // ============================================
+    // GET MEETING DETAILS (no access check)
+    // ============================================
     async getMeetingDetails(meetingId, userId = null) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if user has access
-        if (userId) {
-            const isParticipant = await participantRepository.isParticipant(meetingId, userId);
-            const isCreator = meeting.created_by === userId;
-            if (!isParticipant && !isCreator) {
-                throw new Error('You do not have access to this meeting');
-            }
-        }
-
-        // Get participants
         const participants = await participantRepository.getMeetingParticipants(meetingId);
-
-        // Get WabiFocus items
         const wabifocus = await wabifocusRepository.findByMeeting(meetingId);
-
-        // Get attendance
-        const attendance = await this.getAttendance(meetingId);
-
-        // Get stats
         const participantCount = await participantRepository.getParticipantCount(meetingId);
 
-        return {
+        const result = {
             ...meeting,
             participant_count: participantCount,
             participants,
             wabifocus,
-            attendance
         };
+
+        if (userId) {
+            const isParticipant = await participantRepository.isParticipant(meetingId, userId);
+            const isCreator = meeting.created_by === userId;
+            result.userRole = isCreator ? 'host' : (isParticipant ? 'participant' : null);
+            if (isParticipant) {
+                const participant = await participantRepository.getParticipant(meetingId, userId);
+                result.userStatus = participant?.status;
+            }
+        }
+
+        return result;
     }
 
-    //   Join a meeting
-     
+    // ============================================
+    // GET MEETING BY CODE
+    // ============================================
+    async getMeetingByCode(code, userId) {
+        const meeting = await meetingRepository.findByCode(code);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+        return this.getMeetingDetails(meeting.id, userId);
+    }
+
+    // ============================================
+    // JOIN MEETING – always respect waiting_room_enabled
+    // ============================================
     async joinMeeting(userId, meetingId, password = null) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if meeting is active or scheduled
         if (meeting.status === 'ended') {
             throw new Error('Meeting has already ended');
         }
@@ -167,12 +150,10 @@ class MeetingService {
             throw new Error('Meeting has been cancelled');
         }
 
-        // Check if meeting is locked
         if (meeting.is_locked) {
             throw new Error('Meeting is locked');
         }
 
-        // Check password if required
         if (meeting.password_hash) {
             if (!password) {
                 throw new Error('Password required');
@@ -183,34 +164,117 @@ class MeetingService {
             }
         }
 
-        // Check max participants
         const currentCount = await participantRepository.getParticipantCount(meetingId);
         if (meeting.max_participants && currentCount >= meeting.max_participants) {
             throw new Error('Meeting has reached maximum participants');
         }
 
-        // Check if user is already a participant
         const isParticipant = await participantRepository.isParticipant(meetingId, userId);
+        let status;
+
         if (isParticipant) {
-            // Update status to joined
-            await participantRepository.updateStatus(meetingId, userId, 'joined');
-            return this.getMeetingDetails(meetingId, userId);
+            // Update existing participant status based on waiting_room_enabled
+            status = meeting.waiting_room_enabled ? 'waiting' : 'joined';
+            await participantRepository.updateStatus(meetingId, userId, status);
+        } else {
+            // New participant
+            status = meeting.waiting_room_enabled ? 'waiting' : 'joined';
+            await participantRepository.addParticipant(meetingId, userId, 'participant');
+            if (status === 'waiting') {
+                await participantRepository.updateStatus(meetingId, userId, 'waiting');
+            }
         }
 
-        // Add participant (waiting room or direct join)
-        const status = meeting.waiting_room_enabled ? 'waiting' : 'joined';
-        await participantRepository.addParticipant(meetingId, userId, 'participant');
-        
-        // If waiting room enabled, update status to waiting
+        // If waiting, emit socket event to host
         if (status === 'waiting') {
-            await participantRepository.updateStatus(meetingId, userId, 'waiting');
+            await this._emitWaitingEvent(meeting, userId);
         }
 
         return this.getMeetingDetails(meetingId, userId);
     }
 
-    //   Leave a meeting
-     
+    // ============================================
+    // Helper: emit waiting-participant event
+    // ============================================
+    async _emitWaitingEvent(meeting, userId) {
+        try {
+            const hostId = meeting.created_by;
+            const [userRows] = await pool.execute('SELECT first_name, last_name FROM users WHERE id = ?', [userId]);
+            const username = userRows[0] ? `${userRows[0].first_name} ${userRows[0].last_name}` : 'User';
+            const io = getIO();
+            io.to(`user-${hostId}`).emit('waiting-participant', {
+                userId,
+                username,
+                meetingId: meeting.id
+            });
+            io.to(`meeting-${meeting.id}`).emit('waiting-participant', { userId, username });
+            console.log(`📨 Emitted waiting-participant for ${username} to host ${hostId}`);
+        } catch (err) {
+            console.error('Failed to emit waiting event:', err);
+        }
+    }
+
+    // ============================================
+    // ADMIT PARTICIPANT
+    // ============================================
+    async admitParticipant(hostId, meetingId, userIdToAdmit) {
+        const isHost = await participantRepository.isHost(meetingId, hostId);
+        if (!isHost) {
+            throw new Error('Only the host can admit participants');
+        }
+
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        if (meeting.status === 'ended') {
+            throw new Error('Meeting has already ended');
+        }
+
+        await participantRepository.admitParticipant(meetingId, userIdToAdmit);
+
+        try {
+            const [userRows] = await pool.execute('SELECT first_name, last_name FROM users WHERE id = ?', [userIdToAdmit]);
+            const username = userRows[0] ? `${userRows[0].first_name} ${userRows[0].last_name}` : 'User';
+            const io = getIO();
+            io.to(`user-${userIdToAdmit}`).emit('participant-admitted', {
+                userId: userIdToAdmit,
+                username,
+                meetingId
+            });
+            io.to(`meeting-${meetingId}`).emit('participant-admitted', {
+                userId: userIdToAdmit,
+                username
+            });
+        } catch (err) {
+            console.error('Failed to emit participant-admitted event:', err);
+        }
+
+        return this.getMeetingDetails(meetingId, hostId);
+    }
+
+    // ============================================
+    // REMOVE PARTICIPANT
+    // ============================================
+    async removeParticipant(hostId, meetingId, userIdToRemove) {
+        const isHost = await participantRepository.isHost(meetingId, hostId);
+        if (!isHost) {
+            throw new Error('Only the host can remove participants');
+        }
+
+        const meeting = await meetingRepository.findById(meetingId);
+        if (!meeting) {
+            throw new Error('Meeting not found');
+        }
+
+        await participantRepository.removeParticipant(meetingId, userIdToRemove);
+        return { message: 'Participant removed' };
+    }
+
+    // ============================================
+    // LEAVE MEETING
+    // ============================================
     async leaveMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
@@ -222,22 +286,16 @@ class MeetingService {
             throw new Error('You are not a participant in this meeting');
         }
 
-        // Update participant status
         await participantRepository.updateStatus(meetingId, userId, 'left');
 
-        // Check if host is leaving
         const isHost = await participantRepository.isHost(meetingId, userId);
         if (isHost) {
-            // If host leaves, assign new host or end meeting
             const participants = await participantRepository.getMeetingParticipants(meetingId);
             const activeParticipants = participants.filter(p => p.status === 'joined');
-            
             if (activeParticipants.length > 0) {
-                // Assign new host (first active participant)
                 const newHost = activeParticipants[0];
                 await participantRepository.updateRole(meetingId, newHost.user_id, 'host');
             } else {
-                // No active participants, end meeting
                 await meetingRepository.endMeeting(meetingId);
             }
         }
@@ -245,15 +303,15 @@ class MeetingService {
         return { message: 'Left meeting successfully' };
     }
 
-    //   Start a meeting
-     
+    // ============================================
+    // START MEETING
+    // ============================================
     async startMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if user is host
         const isHost = await participantRepository.isHost(meetingId, userId);
         if (!isHost) {
             throw new Error('Only the host can start the meeting');
@@ -267,19 +325,18 @@ class MeetingService {
             throw new Error('Meeting has already ended');
         }
 
-        const updatedMeeting = await meetingRepository.startMeeting(meetingId);
-        return updatedMeeting;
+        return await meetingRepository.startMeeting(meetingId);
     }
 
-    //   End a meeting
-     
+    // ============================================
+    // END MEETING
+    // ============================================
     async endMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if user is host
         const isHost = await participantRepository.isHost(meetingId, userId);
         if (!isHost) {
             throw new Error('Only the host can end the meeting');
@@ -289,12 +346,12 @@ class MeetingService {
             throw new Error('Meeting has already ended');
         }
 
-        const updatedMeeting = await meetingRepository.endMeeting(meetingId);
-        return updatedMeeting;
+        return await meetingRepository.endMeeting(meetingId);
     }
 
-    //   Get user's meetings
-    
+    // ============================================
+    // GET USER MEETINGS
+    // ============================================
     async getUserMeetings(userId, status = null, page = 1, limit = 20) {
         const offset = (page - 1) * limit;
         const meetings = await meetingRepository.findByUser(userId, status, limit, offset);
@@ -306,25 +363,27 @@ class MeetingService {
                 page,
                 limit,
                 total,
-                totalPages: Math.ceil(total / limit)
-            }
+                totalPages: Math.ceil(total / limit),
+            },
         };
     }
 
-    //   Get upcoming meetings for a user
-    
+    // ============================================
+    // GET UPCOMING MEETINGS
+    // ============================================
     async getUpcomingMeetings(userId) {
         return await meetingRepository.getUpcomingMeetings(userId);
     }
 
-    //   Update meeting
+    // ============================================
+    // UPDATE MEETING
+    // ============================================
     async updateMeeting(userId, meetingId, data) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if user is host
         const isHost = await participantRepository.isHost(meetingId, userId);
         if (!isHost) {
             throw new Error('Only the host can update the meeting');
@@ -334,19 +393,18 @@ class MeetingService {
             throw new Error('Cannot update ended meeting');
         }
 
-        const updatedMeeting = await meetingRepository.update(meetingId, data);
-        return updatedMeeting;
+        return await meetingRepository.update(meetingId, data);
     }
 
-    //   Delete meeting
-     
+    // ============================================
+    // DELETE MEETING
+    // ============================================
     async deleteMeeting(userId, meetingId) {
         const meeting = await meetingRepository.findById(meetingId);
         if (!meeting) {
             throw new Error('Meeting not found');
         }
 
-        // Check if user is host
         const isHost = await participantRepository.isHost(meetingId, userId);
         if (!isHost) {
             throw new Error('Only the host can delete the meeting');
@@ -356,172 +414,18 @@ class MeetingService {
         return { message: 'Meeting deleted successfully' };
     }
 
-    //   Get meeting statistics
-     
+    // ============================================
+    // GET MEETING STATS
+    // ============================================
     async getMeetingStats(userId = null) {
         return await meetingRepository.getStatistics(userId);
     }
 
-    //   Get meeting attendance
-    async getAttendance(meetingId) {
-        try {
-            const { default: attendanceRepository } = await import('../repositories/attendanceRepository.js');
-            return await attendanceRepository.findByMeeting(meetingId);
-        } catch (error) {
-            console.error('Error getting attendance:', error);
-            return [];
-        }
-    }
-
-    //   Get active meetings
+    // ============================================
+    // GET ACTIVE MEETINGS
+    // ============================================
     async getActiveMeetings() {
         return await meetingRepository.getActiveMeetings();
-    }
-
-    //   Get meeting by code
-    async getMeetingByCode(code, userId) {
-        const meeting = await meetingRepository.findByCode(code);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        // Check if user has access
-        const isParticipant = await participantRepository.isParticipant(meeting.id, userId);
-        const isCreator = meeting.created_by === userId;
-        if (!isParticipant && !isCreator) {
-            throw new Error('You do not have access to this meeting');
-        }
-
-        return this.getMeetingDetails(meeting.id, userId);
-    }
-
-    //   Lock meeting
-    async lockMeeting(userId, meetingId) {
-        const meeting = await meetingRepository.findById(meetingId);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        const isHost = await participantRepository.isHost(meetingId, userId);
-        if (!isHost) {
-            throw new Error('Only the host can lock the meeting');
-        }
-
-        return await meetingRepository.setLockStatus(meetingId, true);
-    }
-
-    //   Unlock meeting
-     
-    async unlockMeeting(userId, meetingId) {
-        const meeting = await meetingRepository.findById(meetingId);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        const isHost = await participantRepository.isHost(meetingId, userId);
-        if (!isHost) {
-            throw new Error('Only the host can unlock the meeting');
-        }
-
-        return await meetingRepository.setLockStatus(meetingId, false);
-    }
-
-    //   Enable waiting room
-     
-    async enableWaitingRoom(userId, meetingId) {
-        const meeting = await meetingRepository.findById(meetingId);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        const isHost = await participantRepository.isHost(meetingId, userId);
-        if (!isHost) {
-            throw new Error('Only the host can manage waiting room');
-        }
-
-        return await meetingRepository.setWaitingRoom(meetingId, true);
-    }
-
-    //   Disable waiting room
-    async disableWaitingRoom(userId, meetingId) {
-        const meeting = await meetingRepository.findById(meetingId);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        const isHost = await participantRepository.isHost(meetingId, userId);
-        if (!isHost) {
-            throw new Error('Only the host can manage waiting room');
-        }
-
-        return await meetingRepository.setWaitingRoom(meetingId, false);
-    }
-
-    //   Get meeting by ID (without access check - for internal use)
-    async getMeetingById(meetingId) {
-        return await meetingRepository.findById(meetingId);
-    }
-
-    //   Check if user is host
-    async isHost(meetingId, userId) {
-        return await participantRepository.isHost(meetingId, userId);
-    }
-
-    //   Check if user is participant
-    async isParticipant(meetingId, userId) {
-        return await participantRepository.isParticipant(meetingId, userId);
-    }
-
-    //   Get participant count
-     
-    async getParticipantCount(meetingId) {
-        return await participantRepository.getParticipantCount(meetingId);
-    }
-
-    //  Search meetings
-     
-    async searchMeetings(userId, searchTerm, page = 1, limit = 20) {
-        const offset = (page - 1) * limit;
-        const meetings = await meetingRepository.search(searchTerm, userId, limit, offset);
-        const total = await meetingRepository.countByUser(userId);
-
-        return {
-            meetings,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit)
-            }
-        };
-    }
-
-    //   Get meetings by date range
-     
-    async getMeetingsByDateRange(userId, startDate, endDate) {
-        return await meetingRepository.findByDateRange(startDate, endDate, userId);
-    }
-
-    //   Update meeting password
-    async updateMeetingPassword(userId, meetingId, newPassword) {
-        const meeting = await meetingRepository.findById(meetingId);
-        if (!meeting) {
-            throw new Error('Meeting not found');
-        }
-
-        const isHost = await participantRepository.isHost(meetingId, userId);
-        if (!isHost) {
-            throw new Error('Only the host can update meeting password');
-        }
-
-        if (newPassword) {
-            const saltRounds = 10;
-            const password_hash = await bcrypt.hash(newPassword, saltRounds);
-            return await meetingRepository.updatePassword(meetingId, password_hash);
-        } else {
-            // Remove password
-            return await meetingRepository.updatePassword(meetingId, null);
-        }
     }
 }
 

@@ -1,6 +1,7 @@
-//  Generate a unique 6-character meeting code
-//  Format: Uppercase letters and numbers
- 
+/**
+ * Generate a unique 6-character meeting code
+ * Format: Uppercase letters and numbers
+ */
 export const generateMeetingCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -10,9 +11,12 @@ export const generateMeetingCode = () => {
     return code;
 };
 
-//   Check if code is valid format
- 
+/**
+ * Check if code is valid format
+ */
 export const isValidMeetingCode = (code) => {
     const codeRegex = /^[A-Z0-9]{6}$/;
     return codeRegex.test(code);
 };
+
+export default generateMeetingCode;

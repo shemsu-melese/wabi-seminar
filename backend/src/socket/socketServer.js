@@ -17,7 +17,6 @@ export const setupSocketServer = (httpServer) => {
 
     console.log('📡 Setting up Socket.IO server...');
 
-    // Connection handling
     io.on('connection', (socket) => {
         connectionHandler(socket, io);
     });
