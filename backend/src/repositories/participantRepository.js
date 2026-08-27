@@ -1,10 +1,17 @@
 import { pool } from '../config/database.js';
+
 class ParticipantRepository {
-    
-    //   Add participant to meeting
-     
+    // ============================================
+    // ADD PARTICIPANT – with safety guard
+    // ============================================
     async addParticipant(meetingId, userId, role = 'participant') {
         try {
+            if (!meetingId || !userId) {
+                const errorMsg = `addParticipant: meetingId (${meetingId}) or userId (${userId}) is missing`;
+                console.error('❌', errorMsg);
+                throw new Error(errorMsg);
+            }
+
             const [result] = await pool.execute(
                 `INSERT INTO meeting_participants 
                 (meeting_id, user_id, role, status, joined_at) 
@@ -16,16 +23,16 @@ class ParticipantRepository {
                     role = ?`,
                 [meetingId, userId, role, role]
             );
-            
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error adding participant:', error);
+            console.error('❌ Error adding participant:', error);
             throw error;
         }
     }
 
-    //   Get participant details
-     
+    // ============================================
+    // GET PARTICIPANT
+    // ============================================
     async getParticipant(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
@@ -41,12 +48,14 @@ class ParticipantRepository {
             );
             return rows[0] || null;
         } catch (error) {
-            console.error('Error getting participant:', error);
+            console.error('❌ Error getting participant:', error);
             throw error;
         }
     }
 
-    //   Get all participants for a meeting
+    // ============================================
+    // GET MEETING PARTICIPANTS
+    // ============================================
     async getMeetingParticipants(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -63,12 +72,14 @@ class ParticipantRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting meeting participants:', error);
+            console.error('❌ Error getting meeting participants:', error);
             throw error;
         }
     }
 
-    //   Get all meetings for a participant
+    // ============================================
+    // GET USER MEETINGS
+    // ============================================
     async getUserMeetings(userId) {
         try {
             const [rows] = await pool.execute(
@@ -87,30 +98,47 @@ class ParticipantRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting user meetings:', error);
+            console.error('❌ Error getting user meetings:', error);
             throw error;
         }
     }
 
-    //   Update participant status
+    // ============================================
+    // UPDATE STATUS – FIXED: no extra comma
+    // ============================================
     async updateStatus(meetingId, userId, status) {
         try {
+            if (!meetingId || !userId) {
+                const errorMsg = `updateStatus: meetingId (${meetingId}) or userId (${userId}) is missing`;
+                console.error('❌', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            // Build the SET clause dynamically
+            let setClause = 'status = ?';
+            const params = [status];
+            if (status === 'joined') {
+                setClause += ', joined_at = NOW()';
+            } else if (status === 'left') {
+                setClause += ', left_at = NOW()';
+            }
+            // For other statuses (e.g., 'waiting'), only update status
+
+            params.push(meetingId, userId);
             await pool.execute(
-                `UPDATE meeting_participants 
-                SET status = ?, 
-                    ${status === 'joined' ? 'joined_at = NOW()' : ''}
-                    ${status === 'left' ? 'left_at = NOW()' : ''}
-                WHERE meeting_id = ? AND user_id = ?`,
-                [status, meetingId, userId]
+                `UPDATE meeting_participants SET ${setClause} WHERE meeting_id = ? AND user_id = ?`,
+                params
             );
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error updating participant status:', error);
+            console.error('❌ Error updating participant status:', error);
             throw error;
         }
     }
 
-    //   Update participant role
+    // ============================================
+    // UPDATE ROLE
+    // ============================================
     async updateRole(meetingId, userId, role) {
         try {
             await pool.execute(
@@ -121,13 +149,14 @@ class ParticipantRepository {
             );
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error updating participant role:', error);
+            console.error('❌ Error updating participant role:', error);
             throw error;
         }
     }
 
-    //   Mute participant
-     
+    // ============================================
+    // MUTE / UNMUTE
+    // ============================================
     async muteParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -138,13 +167,11 @@ class ParticipantRepository {
             );
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error muting participant:', error);
+            console.error('❌ Error muting participant:', error);
             throw error;
         }
     }
 
-    //   Unmute participant
-     
     async unmuteParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -155,13 +182,14 @@ class ParticipantRepository {
             );
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error unmuting participant:', error);
+            console.error('❌ Error unmuting participant:', error);
             throw error;
         }
     }
 
-    //   Remove participant from meeting
-     
+    // ============================================
+    // REMOVE PARTICIPANT
+    // ============================================
     async removeParticipant(meetingId, userId) {
         try {
             await pool.execute(
@@ -171,45 +199,45 @@ class ParticipantRepository {
                 [meetingId, userId]
             );
         } catch (error) {
-            console.error('Error removing participant:', error);
+            console.error('❌ Error removing participant:', error);
             throw error;
         }
     }
 
-    //   Check if user is participant in meeting
-    
+    // ============================================
+    // CHECK PARTICIPANT / HOST
+    // ============================================
     async isParticipant(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
-                `SELECT id FROM meeting_participants 
+                `SELECT 1 FROM meeting_participants 
                 WHERE meeting_id = ? AND user_id = ? AND status != 'removed'`,
                 [meetingId, userId]
             );
             return rows.length > 0;
         } catch (error) {
-            console.error('Error checking participant:', error);
+            console.error('❌ Error checking participant:', error);
             throw error;
         }
     }
 
-    //  Check if user is host of meeting
-     
     async isHost(meetingId, userId) {
         try {
             const [rows] = await pool.execute(
-                `SELECT id FROM meeting_participants 
+                `SELECT 1 FROM meeting_participants 
                 WHERE meeting_id = ? AND user_id = ? AND role = 'host'`,
                 [meetingId, userId]
             );
             return rows.length > 0;
         } catch (error) {
-            console.error('Error checking host:', error);
+            console.error('❌ Error checking host:', error);
             throw error;
         }
     }
 
-    //   Get participant count for meeting
-     
+    // ============================================
+    // COUNTS & WAITING
+    // ============================================
     async getParticipantCount(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -220,12 +248,11 @@ class ParticipantRepository {
             );
             return rows[0].count;
         } catch (error) {
-            console.error('Error getting participant count:', error);
+            console.error('❌ Error getting participant count:', error);
             throw error;
         }
     }
 
-    //   Get waiting room participants
     async getWaitingParticipants(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -242,15 +269,22 @@ class ParticipantRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting waiting participants:', error);
+            console.error('❌ Error getting waiting participants:', error);
             throw error;
         }
     }
 
-    //  Admit participant from waiting room
-     
+    // ============================================
+    // ADMIT PARTICIPANT – with safety guard
+    // ============================================
     async admitParticipant(meetingId, userId) {
         try {
+            if (!meetingId || !userId) {
+                const errorMsg = `admitParticipant: meetingId (${meetingId}) or userId (${userId}) is missing`;
+                console.error('❌', errorMsg);
+                throw new Error(errorMsg);
+            }
+
             await pool.execute(
                 `UPDATE meeting_participants 
                 SET status = 'joined', joined_at = NOW() 
@@ -259,7 +293,55 @@ class ParticipantRepository {
             );
             return this.getParticipant(meetingId, userId);
         } catch (error) {
-            console.error('Error admitting participant:', error);
+            console.error('❌ Error admitting participant:', error);
+            throw error;
+        }
+    }
+
+    // ============================================
+    // RAISE HAND – NEW
+    // ============================================
+    async raiseHand(meetingId, userId) {
+        try {
+            if (!meetingId || !userId) {
+                const errorMsg = `raiseHand: meetingId (${meetingId}) or userId (${userId}) is missing`;
+                console.error('❌', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            await pool.execute(
+                `UPDATE meeting_participants 
+                 SET hand_raised_at = NOW() 
+                 WHERE meeting_id = ? AND user_id = ?`,
+                [meetingId, userId]
+            );
+            return this.getParticipant(meetingId, userId);
+        } catch (error) {
+            console.error('❌ Error raising hand:', error);
+            throw error;
+        }
+    }
+
+    // ============================================
+    // LOWER HAND – NEW
+    // ============================================
+    async lowerHand(meetingId, userId) {
+        try {
+            if (!meetingId || !userId) {
+                const errorMsg = `lowerHand: meetingId (${meetingId}) or userId (${userId}) is missing`;
+                console.error('❌', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            await pool.execute(
+                `UPDATE meeting_participants 
+                 SET hand_raised_at = NULL 
+                 WHERE meeting_id = ? AND user_id = ?`,
+                [meetingId, userId]
+            );
+            return this.getParticipant(meetingId, userId);
+        } catch (error) {
+            console.error('❌ Error lowering hand:', error);
             throw error;
         }
     }

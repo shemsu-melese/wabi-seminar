@@ -1,41 +1,66 @@
 import { pool } from '../config/database.js';
+
 class WabiFocusRepository {
-    //   Create a WabiFocus item
+    // ============================================
+    // CREATE – safe from undefined
+    // ============================================
     async create(data) {
         try {
-            const {
-                meeting_id,
-                user_id,
-                type,
-                title,
-                description,
-                assigned_to,
-                due_date,
-                priority = 'medium'
-            } = data;
+            // Build a safe object – every field gets a value (null if missing)
+            const safe = {
+                meeting_id: data.meeting_id ?? null,
+                user_id: data.user_id ?? null,
+                type: data.type ?? null,
+                title: data.title ?? null,
+                description: data.description ?? null,
+                assigned_to: data.assigned_to ?? null,
+                due_date: data.due_date ?? null,
+                priority: data.priority ?? 'medium',
+                order_index: data.order_index ?? 0,
+            };
 
-            const [orderResult] = await pool.execute(
-                'SELECT COALESCE(MAX(order_index), -1) + 1 as next_order FROM wabifocus_items WHERE meeting_id = ? AND type = ?',
-                [meeting_id, type]
-            );
-            const order_index = orderResult[0].next_order;
+            // Double‑check: replace any leftover undefined with null
+            Object.keys(safe).forEach((key) => {
+                if (safe[key] === undefined) safe[key] = null;
+            });
+
+            // Auto‑compute order_index if not provided and type is given
+            let orderIndex = safe.order_index;
+            if (orderIndex === 0 && safe.type && safe.meeting_id) {
+                const [orderResult] = await pool.execute(
+                    'SELECT COALESCE(MAX(order_index), -1) + 1 as next_order FROM wabifocus_items WHERE meeting_id = ? AND type = ?',
+                    [safe.meeting_id, safe.type]
+                );
+                orderIndex = orderResult[0].next_order;
+            }
 
             const [result] = await pool.execute(
                 `INSERT INTO wabifocus_items 
                 (meeting_id, user_id, type, title, description, assigned_to, due_date, priority, order_index) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [meeting_id, user_id, type, title, description, assigned_to, due_date, priority, order_index]
+                [
+                    safe.meeting_id,
+                    safe.user_id,
+                    safe.type,
+                    safe.title,
+                    safe.description,
+                    safe.assigned_to,
+                    safe.due_date,
+                    safe.priority,
+                    orderIndex,
+                ]
             );
 
             return this.findById(result.insertId);
         } catch (error) {
-            console.error('Error creating WabiFocus item:', error);
+            console.error('❌ Error creating WabiFocus item:', error);
             throw error;
         }
     }
 
-    //   Find WabiFocus item by ID
-     
+    // ============================================
+    // FIND BY ID
+    // ============================================
     async findById(id) {
         try {
             const [rows] = await pool.execute(
@@ -55,13 +80,14 @@ class WabiFocusRepository {
             );
             return rows[0] || null;
         } catch (error) {
-            console.error('Error finding WabiFocus item:', error);
+            console.error('❌ Error finding WabiFocus item:', error);
             throw error;
         }
     }
 
-    //   Get all WabiFocus items for a meeting
-     
+    // ============================================
+    // FIND BY MEETING
+    // ============================================
     async findByMeeting(meetingId) {
         try {
             const [rows] = await pool.execute(
@@ -84,283 +110,47 @@ class WabiFocusRepository {
             );
             return rows;
         } catch (error) {
-            console.error('Error getting WabiFocus items:', error);
+            console.error('❌ Error getting WabiFocus items:', error);
             throw error;
         }
     }
 
-    // Get WabiFocus items by type for a meeting
-     
-    async findByMeetingAndType(meetingId, type) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    u.email as creator_email,
-                    u2.first_name as assignee_first_name,
-                    u2.last_name as assignee_last_name,
-                    u2.email as assignee_email
-                FROM wabifocus_items wf
-                LEFT JOIN users u ON wf.user_id = u.id
-                LEFT JOIN users u2 ON wf.assigned_to = u2.id
-                WHERE wf.meeting_id = ? AND wf.type = ? AND wf.deleted_at IS NULL
-                ORDER BY wf.order_index ASC`,
-                [meetingId, type]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting WabiFocus items by type:', error);
-            throw error;
-        }
-    }
-
-    //   Get incomplete action items for a meeting
-     
-    async getActionItems(meetingId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    u2.first_name as assignee_first_name,
-                    u2.last_name as assignee_last_name,
-                    u2.email as assignee_email
-                FROM wabifocus_items wf
-                LEFT JOIN users u ON wf.user_id = u.id
-                LEFT JOIN users u2 ON wf.assigned_to = u2.id
-                WHERE wf.meeting_id = ? 
-                AND wf.type = 'action_item' 
-                AND wf.is_completed = FALSE
-                AND wf.deleted_at IS NULL
-                ORDER BY wf.priority DESC, wf.order_index ASC`,
-                [meetingId]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting action items:', error);
-            throw error;
-        }
-    }
-
-    //   Get completed action items for a meeting
-    async getCompletedActionItems(meetingId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    u2.first_name as assignee_first_name,
-                    u2.last_name as assignee_last_name,
-                    u2.email as assignee_email
-                FROM wabifocus_items wf
-                LEFT JOIN users u ON wf.user_id = u.id
-                LEFT JOIN users u2 ON wf.assigned_to = u2.id
-                WHERE wf.meeting_id = ? 
-                AND wf.type = 'action_item' 
-                AND wf.is_completed = TRUE
-                AND wf.deleted_at IS NULL
-                ORDER BY wf.completed_at DESC`,
-                [meetingId]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting completed action items:', error);
-            throw error;
-        }
-    }
-
-    //   Get user's assigned action items
-    async getAssignedActionItems(userId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    m.title as meeting_title,
-                    m.code as meeting_code,
-                    m.status as meeting_status,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name
-                FROM wabifocus_items wf
-                JOIN meetings m ON wf.meeting_id = m.id
-                JOIN users u ON wf.user_id = u.id
-                WHERE wf.assigned_to = ? 
-                AND wf.type = 'action_item'
-                AND wf.deleted_at IS NULL
-                ORDER BY wf.is_completed ASC, wf.priority DESC, wf.due_date ASC`,
-                [userId]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting assigned action items:', error);
-            throw error;
-        }
-    }
-
-    //   Update WabiFocus item
-     
+    // ============================================
+    // UPDATE (optional – keep as is)
+    // ============================================
     async update(id, data) {
         try {
             const updates = [];
             const values = [];
-
-            const fields = ['title', 'description', 'type', 'assigned_to', 'due_date', 'priority', 'order_index'];
-
+            const fields = ['title', 'description', 'priority', 'is_completed', 'assigned_to', 'due_date', 'order_index'];
             for (const field of fields) {
                 if (data[field] !== undefined) {
                     updates.push(`${field} = ?`);
                     values.push(data[field]);
                 }
             }
-
-            if (data.is_completed !== undefined) {
-                updates.push('is_completed = ?');
-                values.push(data.is_completed);
-                if (data.is_completed) {
-                    updates.push('completed_at = NOW()');
-                } else {
-                    updates.push('completed_at = NULL');
-                }
+            if (data.completed_at !== undefined) {
+                updates.push('completed_at = ?');
+                values.push(data.completed_at);
             }
-
-            if (updates.length === 0) {
-                return this.findById(id);
-            }
-
+            if (updates.length === 0) return this.findById(id);
             values.push(id);
-            await pool.execute(
-                `UPDATE wabifocus_items SET ${updates.join(', ')} WHERE id = ?`,
-                values
-            );
-
+            await pool.execute(`UPDATE wabifocus_items SET ${updates.join(', ')} WHERE id = ?`, values);
             return this.findById(id);
         } catch (error) {
-            console.error('Error updating WabiFocus item:', error);
+            console.error('❌ Error updating WabiFocus item:', error);
             throw error;
         }
     }
 
-    //   Reorder items
-    async reorder(meetingId, type, itemIds) {
+    // ============================================
+    // DELETE (soft delete)
+    // ============================================
+    async delete(id) {
         try {
-            for (let i = 0; i < itemIds.length; i++) {
-                await pool.execute(
-                    'UPDATE wabifocus_items SET order_index = ? WHERE id = ? AND meeting_id = ? AND type = ?',
-                    [i, itemIds[i], meetingId, type]
-                );
-            }
-            return true;
+            await pool.execute('UPDATE wabifocus_items SET deleted_at = NOW() WHERE id = ?', [id]);
         } catch (error) {
-            console.error('Error reordering items:', error);
-            throw error;
-        }
-    }
-
-    //   Delete WabiFocus item
-     
-    async delete(id, userId) {
-        try {
-            const [rows] = await pool.execute(
-                'SELECT user_id FROM wabifocus_items WHERE id = ?',
-                [id]
-            );
-            
-            if (rows.length === 0) {
-                throw new Error('Item not found');
-            }
-            
-            if (rows[0].user_id !== userId) {
-                throw new Error('You can only delete your own items');
-            }
-
-            await pool.execute(
-                'UPDATE wabifocus_items SET deleted_at = NOW() WHERE id = ?',
-                [id]
-            );
-            return true;
-        } catch (error) {
-            console.error('Error deleting WabiFocus item:', error);
-            throw error;
-        }
-    }
-
-    //  Get WabiFocus summary for a meeting
-     
-    async getSummary(meetingId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    type,
-                    COUNT(*) as total,
-                    SUM(CASE WHEN is_completed = TRUE THEN 1 ELSE 0 END) as completed,
-                    SUM(CASE WHEN is_completed = FALSE THEN 1 ELSE 0 END) as pending
-                FROM wabifocus_items
-                WHERE meeting_id = ? AND deleted_at IS NULL
-                GROUP BY type`,
-                [meetingId]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting WabiFocus summary:', error);
-            throw error;
-        }
-    }
-
-    //  Get meeting outcome
-     
-    async getMeetingOutcome(meetingId) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    u.first_name as creator_first_name,
-                    u.last_name as creator_last_name,
-                    u2.first_name as assignee_first_name,
-                    u2.last_name as assignee_last_name
-                FROM wabifocus_items wf
-                LEFT JOIN users u ON wf.user_id = u.id
-                LEFT JOIN users u2 ON wf.assigned_to = u2.id
-                WHERE wf.meeting_id = ? 
-                AND wf.type IN ('goal', 'outcome', 'decision')
-                AND wf.deleted_at IS NULL
-                ORDER BY wf.type, wf.order_index`,
-                [meetingId]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting meeting outcome:', error);
-            throw error;
-        }
-    }
-
-    //   Get action items with deadline approaching
-     
-    async getUpcomingActionItems(days = 7) {
-        try {
-            const [rows] = await pool.execute(
-                `SELECT 
-                    wf.*,
-                    m.title as meeting_title,
-                    m.code as meeting_code,
-                    u.first_name as assignee_first_name,
-                    u.last_name as assignee_last_name
-                FROM wabifocus_items wf
-                JOIN meetings m ON wf.meeting_id = m.id
-                JOIN users u ON wf.assigned_to = u.id
-                WHERE wf.type = 'action_item'
-                AND wf.is_completed = FALSE
-                AND wf.due_date IS NOT NULL
-                AND wf.due_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ? DAY)
-                AND wf.deleted_at IS NULL
-                ORDER BY wf.due_date ASC`,
-                [days]
-            );
-            return rows;
-        } catch (error) {
-            console.error('Error getting upcoming action items:', error);
+            console.error('❌ Error deleting WabiFocus item:', error);
             throw error;
         }
     }
