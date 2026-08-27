@@ -1,151 +1,138 @@
-const MEETINGS_KEY = "wabi_meetings";
+import api from './api.js';
 
-/**
- * Get all meetings
- */
-function getMeetings() {
-  const storedMeetings = localStorage.getItem(MEETINGS_KEY);
+export const meetingService = {
+    // ============================================
+    // CREATE
+    // ============================================
+    createMeeting: async (data) => {
+        try {
+            const response = await api.post('/meetings', data);
+            return response.data;
+        } catch (error) {
+            console.error('❌ createMeeting error:', error);
+            throw error;
+        }
+    },
 
-  if (!storedMeetings) {
-    return [];
-  }
+    // ============================================
+    // READ – List
+    // ============================================
+    getMeetings: async (status = null, page = 1, limit = 20) => {
+        let url = `/meetings?page=${page}&limit=${limit}`;
+        if (status) url += `&status=${status}`;
+        const response = await api.get(url);
+        return response.data;
+    },
 
-  try {
-    return JSON.parse(storedMeetings);
-  } catch (error) {
-    console.error("Failed to read meetings:", error);
-    return [];
-  }
-}
+    getUpcomingMeetings: async () => {
+        const response = await api.get('/meetings/upcoming');
+        return response.data;
+    },
 
-/**
- * Save meetings
- */
-function saveMeetings(meetings) {
-  localStorage.setItem(
-    MEETINGS_KEY,
-    JSON.stringify(meetings)
-  );
-}
+    getActiveMeetings: async () => {
+        const response = await api.get('/meetings/active');
+        return response.data;
+    },
 
-/**
- * Get one meeting
- */
-export function getMeeting(code) {
-  const meetings = getMeetings();
+    getStats: async () => {
+        const response = await api.get('/meetings/stats');
+        return response.data;
+    },
 
-  return meetings.find(
-    (meeting) => meeting.code === code
-  );
-}
+    // ============================================
+    // READ – Single
+    // ============================================
+    getMeeting: async (id) => {
+        const response = await api.get(`/meetings/${id}`);
+        return response.data;
+    },
 
-/**
- * Create a meeting
- */
-export function createMeeting(name = "Instant Meeting") {
-  const meetings = getMeetings();
+    getMeetingByCode: async (code) => {
+        const response = await api.get(`/meetings/code/${code}`);
+        return response.data;
+    },
 
-  const meeting = {
-    id: crypto.randomUUID(),
-    code: generateMeetingCode(),
-    name,
-    createdAt: new Date().toISOString(),
-    participants: [],
-  };
+    // ============================================
+    // UPDATE
+    // ============================================
+    updateMeeting: async (id, data) => {
+        const response = await api.put(`/meetings/${id}`, data);
+        return response.data;
+    },
 
-  meetings.push(meeting);
+    // ============================================
+    // DELETE
+    // ============================================
+    deleteMeeting: async (id) => {
+        const response = await api.delete(`/meetings/${id}`);
+        return response.data;
+    },
 
-  saveMeetings(meetings);
+    // ============================================
+    // ACTIONS
+    // ============================================
+    joinMeeting: async (id, password = null) => {
+        const response = await api.post(`/meetings/${id}/join`, { password });
+        return response.data;
+    },
 
-  return meeting;
-}
+    leaveMeeting: async (id) => {
+        const response = await api.post(`/meetings/${id}/leave`);
+        return response.data;
+    },
 
-/**
- * Join a meeting
- */
-export function joinMeeting(code, participant) {
-  const meetings = getMeetings();
+    startMeeting: async (id) => {
+        const response = await api.post(`/meetings/${id}/start`);
+        return response.data;
+    },
 
-  const meetingIndex = meetings.findIndex(
-    (meeting) => meeting.code === code
-  );
+    endMeeting: async (id) => {
+        const response = await api.post(`/meetings/${id}/end`);
+        return response.data;
+    },
 
-  if (meetingIndex === -1) {
-    throw new Error("Meeting not found");
-  }
+    lockMeeting: async (id) => {
+        const response = await api.post(`/meetings/${id}/lock`);
+        return response.data;
+    },
 
-  const meeting = meetings[meetingIndex];
+    unlockMeeting: async (id) => {
+        const response = await api.post(`/meetings/${id}/unlock`);
+        return response.data;
+    },
 
-  const existingParticipant =
-    meeting.participants.find(
-      (item) => item.id === participant.id
-    );
+    // ============================================
+    // WAITING ROOM – Host actions
+    // ============================================
+    /**
+     * Admit a participant from the waiting room into the meeting.
+     * @param {number|string} meetingId - ID of the meeting.
+     * @param {number|string} userId - ID of the participant to admit.
+     */
+    admitParticipant: async (meetingId, userId) => {
+        try {
+            const response = await api.put(`/meetings/${meetingId}/admit/${userId}`);
+            return response.data;
+        } catch (error) {
+            console.error('❌ admitParticipant error:', error);
+            throw error;
+        }
+    },
 
-  if (!existingParticipant) {
-    meeting.participants.push({
-      ...participant,
-      joinedAt: new Date().toISOString(),
-    });
-  }
+    /**
+     * Remove a participant (deny from waiting room or kick from meeting).
+     * @param {number|string} meetingId - ID of the meeting.
+     * @param {number|string} userId - ID of the participant to remove.
+     */
+    removeParticipant: async (meetingId, userId) => {
+        try {
+            const response = await api.delete(`/meetings/${meetingId}/participants/${userId}`);
+            return response.data;
+        } catch (error) {
+            console.error('❌ removeParticipant error:', error);
+            throw error;
+        }
+    },
+};
 
-  meetings[meetingIndex] = meeting;
-
-  saveMeetings(meetings);
-
-  return meeting;
-}
-
-/**
- * Leave a meeting
- */
-export function leaveMeeting(
-  code,
-  participantId
-) {
-  const meetings = getMeetings();
-
-  const meetingIndex = meetings.findIndex(
-    (meeting) => meeting.code === code
-  );
-
-  if (meetingIndex === -1) {
-    throw new Error("Meeting not found");
-  }
-
-  const meeting = meetings[meetingIndex];
-
-  meeting.participants =
-    meeting.participants.filter(
-      (participant) =>
-        participant.id !== participantId
-    );
-
-  meetings[meetingIndex] = meeting;
-
-  saveMeetings(meetings);
-
-  return meeting;
-}
-
-/**
- * Generate meeting code
- */
-function generateMeetingCode() {
-  const characters =
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-  let code = "";
-
-  for (let i = 0; i < 9; i++) {
-    code += characters.charAt(
-      Math.floor(
-        Math.random() * characters.length
-      )
-    );
-  }
-
-  return `${code.slice(0, 3)}-${code.slice(
-    3,
-    6
-  )}-${code.slice(6, 9)}`;
-}
+export default meetingService;

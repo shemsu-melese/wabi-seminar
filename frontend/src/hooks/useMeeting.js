@@ -1,42 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from 'react';
 
-function generateMeetingCode() {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+/**
+ * Custom hook to manage meetings locally
+ * (Will be replaced with API calls later)
+ */
+const useMeeting = () => {
+    const [meetings, setMeetings] = useState([]);
 
-  let code = "";
+    // Load meetings from localStorage on mount
+    useEffect(() => {
+        const stored = localStorage.getItem('wabi_meetings');
+        if (stored) {
+            try {
+                setMeetings(JSON.parse(stored));
+            } catch {
+                setMeetings([]);
+            }
+        }
+    }, []);
 
-  for (let i = 0; i < 9; i++) {
-    code += characters.charAt(
-      Math.floor(Math.random() * characters.length)
-    );
-  }
+    // Save to localStorage whenever meetings change
+    useEffect(() => {
+        localStorage.setItem('wabi_meetings', JSON.stringify(meetings));
+    }, [meetings]);
 
-  return `${code.slice(0, 3)}-${code.slice(3, 6)}-${code.slice(6, 9)}`;
-}
-
-function useMeeting() {
-  const [meetings, setMeetings] = useState([]);
-
-  function addMeeting(title = "Instant Meeting") {
-    const meeting = {
-      id: Date.now(),
-      title,
-      code: generateMeetingCode(),
-      createdAt: new Date().toISOString(),
+    /**
+     * Add a new meeting
+     * @param {string} title - Meeting title
+     * @returns {object} New meeting object
+     */
+    const addMeeting = (title) => {
+        const newMeeting = {
+            id: Date.now(),
+            code: generateMeetingCode(),
+            title: title || 'Untitled Meeting',
+            createdAt: new Date().toISOString(),
+        };
+        setMeetings((prev) => [newMeeting, ...prev]);
+        return newMeeting;
     };
 
-    setMeetings((currentMeetings) => [
-      ...currentMeetings,
-      meeting,
-    ]);
+    /**
+     * Generate a random meeting code (6 characters)
+     */
+    const generateMeetingCode = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    };
 
-    return meeting;
-  }
-
-  return {
-    meetings,
-    addMeeting,
-  };
-}
+    return { meetings, addMeeting };
+};
 
 export default useMeeting;
